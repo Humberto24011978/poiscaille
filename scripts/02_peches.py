@@ -36,6 +36,7 @@ def main():
                  "coordonnee_x_point_prelevement", "coordonnee_y_point_prelevement",
                  "coordonnee_x_station", "coordonnee_y_station", "code_epsg_projection_station"]
     ops = pd.concat([requete("operations", {"code_departement": d}, champs_op) for d in DEPARTEMENTS], ignore_index=True)
+    ops["code_operation"] = pd.to_numeric(ops["code_operation"], errors="coerce").astype("Int64").astype(str)
     ops = ops.drop_duplicates("code_operation")
     ops["x"] = ops["coordonnee_x_point_prelevement"].fillna(ops["coordonnee_x_station"])
     ops["y"] = ops["coordonnee_y_point_prelevement"].fillna(ops["coordonnee_y_station"])
@@ -56,6 +57,7 @@ def main():
                     obs.append(o)
         if obs:
             o = pd.concat(obs, ignore_index=True)
+            o["code_operation"] = pd.to_numeric(o["code_operation"], errors="coerce").astype("Int64").astype(str)
             o = o[pd.to_numeric(o["effectif_lot"], errors="coerce").fillna(1) > 0]
             o = o.merge(ops[["code_operation", "annee"]], on="code_operation", how="inner")
             par_station = o.groupby("code_station").agg(n=("code_operation", "nunique"), der=("annee", "max"))

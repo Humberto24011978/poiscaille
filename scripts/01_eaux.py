@@ -183,16 +183,21 @@ def main():
     riv.loc[riv["nom"].str.contains("Rhin", case=False) & (riv["largeur"] >= 3), "type"] = "rhin"
     print(f"  {len(riv)} morceaux de rivière")
 
-    print("Plans d'eau (BD TOPO)...")
-    pl = par_tuiles("BDTOPO_V3:plan_d_eau", emprise, "plans d'eau", champs=["cleabs", "nature", "toponyme"])
-    pl = pl[pl["nature"].isin(NATURES_PLANS)].copy()
-    pl["geometry"] = pl.geometry.apply(force_2d)
+    print("Plans d'eau (BD TOPO, surfaces en eau)...")
+    sh = par_tuiles("BDTOPO_V3:surface_hydrographique", emprise, "surfaces en eau",
+                    champs=["cleabs", "nature", "persistance", "cpx_toponyme_de_plan_d_eau", "liens_vers_plan_d_eau"])
+    sh = sh[sh["nature"].isin(NATURES_PLANS) & (sh["persistance"] != "Intermittent")].copy()
+    sh["geometry"] = sh.geometry.apply(force_2d)
+    # Un même plan d'eau peut être découpé en plusieurs surfaces : on les regroupe
+    sh["groupe"] = sh["liens_vers_plan_d_eau"].fillna("").astype(str)
+    sh.loc[sh["groupe"] == "", "groupe"] = "s_" + sh["cleabs"].astype(str)
+    sh["nom"] = sh["cpx_toponyme_de_plan_d_eau"].fillna("").astype(str)
+    pl = sh.dissolve(by="groupe", aggfunc={"nature": "first", "nom": "max"}).reset_index()
     pl = pl[pl.area >= SURFACE_MIN]
     pl = pl[pl.intersects(zone)]
     pl["type"] = pl["nature"].map(NATURES_PLANS)
-    pl["nom"] = pl["toponyme"].fillna("").astype(str)
     pl["surface_ha"] = (pl.area / 1e4).round(2)
-    print(f"  {len(pl)} plans d'eau d'au moins 0,3 ha")
+    print(f"  {len(pl)} plans d'eau d'au moins 0,3 ha ; {pl['type'].value_counts().to_dict()}")
 
     print("Altitude (Copernicus GLO-30)...")
     alt = altitude_grille()
