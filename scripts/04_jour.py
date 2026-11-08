@@ -32,7 +32,7 @@ ESP = list(ESPECES)
 # Température de l'eau idéale pour l'activité de chaque espèce (°C) : début, fin, marge
 TEMP_EAU = {
     "truite": (8, 15, 5), "ombre": (8, 15, 5), "brochet": (8, 18, 7), "sandre": (12, 22, 6),
-    "perche": (12, 22, 7), "carpe": (17, 26, 7), "blancs": (12, 22, 7), "silure": (18, 27, 6),
+    "perche": (12, 22, 7), "carpe": (17, 26, 10), "blancs": (12, 22, 8), "silure": (18, 27, 10),
 }
 # Espèces qui profitent d'une légère montée des eaux (eau teintée), selon l'expérience des pêcheurs
 AIMENT_MONTEE = {"truite", "brochet", "perche", "silure", "blancs"}
