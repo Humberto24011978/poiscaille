@@ -1,0 +1,47 @@
+name: Préparation des données
+
+# Lancée à la main (onglet Actions). Télécharge les eaux, les pêches scientifiques,
+# calcule le potentiel de chaque rivière et plan d'eau, puis enregistre le résultat.
+on:
+  workflow_dispatch:
+    inputs:
+      etapes:
+        description: "Étapes à lancer"
+        type: choice
+        default: tout
+        options: [tout, eaux, peches, potentiel]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: preparation
+  cancel-in-progress: false
+
+jobs:
+  preparation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: 1. Rivières et plans d'eau (IGN, OpenStreetMap)
+        if: inputs.etapes == 'tout' || inputs.etapes == 'eaux'
+        run: python scripts/01_eaux.py
+      - name: 2. Pêches scientifiques (OFB, Hub'Eau)
+        if: inputs.etapes == 'tout' || inputs.etapes == 'peches'
+        run: python scripts/02_peches.py
+      - name: 3. Potentiel par espèce
+        run: python scripts/03_potentiel.py
+      - name: Enregistrer les données
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/ site/donnees/eaux.json
+          git diff --cached --quiet || git commit -m "Données mises à jour (${{ inputs.etapes }})"
+          git pull --rebase
+          git push

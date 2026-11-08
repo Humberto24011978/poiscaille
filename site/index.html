@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>poiscaille</title>
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="googlebot" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪝</text></svg>">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&display=swap">
+<style>
+  :root {
+    --nuit: #12324a; --eau: #2c6e8f; --creme: #f6f8f7; --encre: #1e2428; --gris: #5f6b72; --ligne: #d9e1e4;
+    --accent: #c8692b; --bon: #2f7d4a; --moyen: #c58a1c; --faible: #9a5b4b; --ferme: #8a8f94;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--encre); background: var(--creme); }
+  #carte { position: fixed; inset: 0; }
+  .panneau { position: fixed; z-index: 1000; top: 16px; left: 16px; width: 350px; max-height: calc(100% - 32px); overflow: auto;
+    background: var(--creme); border-radius: 14px; box-shadow: 0 6px 24px rgba(0,0,0,.2); }
+  .tete { background: var(--nuit); color: #fff; padding: 14px 16px 12px; border-radius: 14px 14px 0 0; display: flex; align-items: center; gap: 10px; }
+  .tete h1 { font-family: Fraunces, Georgia, serif; font-weight: 600; font-size: 22px; margin: 0; }
+  .tete p { margin: 2px 0 0; font-size: 12.5px; opacity: .85; }
+  .tete .plier { margin-left: auto; background: none; border: 1px solid rgba(255,255,255,.35); color: #fff; border-radius: 8px; padding: 4px 9px; font-size: 13px; cursor: pointer; display: none; }
+  .corps { padding: 14px 16px 16px; }
+  label.titre { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: .6px; color: var(--gris); margin: 0 0 6px; }
+  .avenir { background: #eef6f9; border: 1px solid #c6dde6; border-radius: 12px; padding: 10px 12px; margin-bottom: 14px; }
+  .avenir h3 { margin: 0 0 4px; font-size: 13px; text-transform: uppercase; letter-spacing: .5px; color: var(--eau); }
+  .avenir .ligne { margin: 3px 0 0; font-size: 13.5px; line-height: 1.45; }
+  .avenir a { color: var(--encre); text-decoration: underline; text-decoration-color: #8fb9cb; text-underline-offset: 2px; }
+  .especes { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .especes button { border: 1px solid var(--ligne); background: #fff; color: var(--encre); border-radius: 999px; padding: 6px 11px; font-size: 13.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+  .especes button .pt { width: 8px; height: 8px; border-radius: 50%; }
+  .especes button[aria-pressed="true"] { background: var(--nuit); color: #fff; border-color: var(--nuit); }
+  .bascule { display: grid; grid-template-columns: 1fr 1fr; background: #e3eaed; border-radius: 10px; padding: 3px; margin-bottom: 12px; }
+  .bascule button { border: 0; background: none; padding: 7px 0; border-radius: 8px; font-size: 13.5px; cursor: pointer; color: var(--gris); }
+  .bascule button[aria-pressed="true"] { background: #fff; color: var(--encre); box-shadow: 0 1px 3px rgba(0,0,0,.12); font-weight: 600; }
+  .jours { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; margin-bottom: 6px; }
+  .jours button { border: 1px solid var(--ligne); background: #fff; border-radius: 9px; padding: 5px 0 4px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; color: var(--gris); min-width: 0; }
+  .jours button[aria-pressed="true"] { border-color: var(--nuit); box-shadow: inset 0 0 0 1px var(--nuit); color: var(--encre); font-weight: 600; }
+  .jours button.tendance { border-style: dashed; }
+  .jours .colonne { width: 10px; height: 34px; background: #e3eaed; border-radius: 3px; display: flex; align-items: flex-end; overflow: hidden; }
+  .jours .colonne span { width: 100%; border-radius: 3px; }
+  .petit { font-size: 11.5px; color: var(--gris); margin: 0 0 12px; line-height: 1.4; }
+  .regle { font-size: 13px; background: #fff; border: 1px solid var(--ligne); border-left: 3px solid var(--eau); border-radius: 8px; padding: 8px 10px; margin-bottom: 12px; line-height: 1.45; }
+  .regle.ferme { border-left-color: var(--accent); background: #fdf3ec; }
+  .etat { border: 1px solid var(--ligne); background: #fff; border-radius: 12px; padding: 12px; margin-bottom: 12px; }
+  .etat .statut { font-weight: 650; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+  .etat .statut .pt { width: 10px; height: 10px; border-radius: 50%; }
+  .etat .detail { font-size: 13px; color: var(--gris); margin-top: 6px; line-height: 1.45; }
+  .barre { height: 10px; border-radius: 5px; background: linear-gradient(to right, #9fb8c8, rgba(246,226,122,.9), rgba(244,163,64,.95), #d9452b, #82204b); }
+  .barre-txt { display: flex; justify-content: space-between; font-size: 12px; color: var(--gris); margin: 4px 0 14px; }
+  .autour { margin-bottom: 14px; border-top: 1px solid var(--ligne); padding-top: 12px; }
+  .rayon { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .rayon input { flex: 1; accent-color: var(--nuit); }
+  .rayon span { min-width: 54px; text-align: right; font-variant-numeric: tabular-nums; font-size: 13.5px; font-weight: 600; }
+  .aide { font-size: 13px; color: var(--gris); margin: 0; line-height: 1.45; }
+  .resultats ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; }
+  .resultats button { width: 100%; display: flex; gap: 10px; align-items: center; text-align: left; background: #fff; border: 1px solid var(--ligne); border-radius: 10px; padding: 7px 9px; cursor: pointer; font-size: 13px; color: var(--encre); }
+  .resultats .km { color: var(--gris); }
+  .num, .coin span { flex: none; width: 24px; height: 24px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; }
+  .coin span { width: 26px; height: 26px; border: 2px solid #fff; box-shadow: 0 1px 5px rgba(0,0,0,.4); }
+  .moi span { display: block; width: 18px; height: 18px; border-radius: 50%; background: #2a6fdb; border: 3px solid #fff; box-shadow: 0 0 0 3px rgba(42,111,219,.3), 0 1px 4px rgba(0,0,0,.3); cursor: grab; }
+  .fiche { font-size: 13.5px; line-height: 1.5; border-top: 1px solid var(--ligne); padding-top: 12px; }
+  .fiche h2 { font-family: Fraunces, Georgia, serif; font-size: 18px; margin: 0 0 6px; font-weight: 600; }
+  .fiche dl { display: grid; grid-template-columns: 72px 1fr; gap: 4px 10px; margin: 0 0 8px; }
+  .fiche dt { color: var(--gris); }
+  .fiche dd { margin: 0; }
+  .lune { font-size: 12.5px; color: var(--gris); margin: -4px 0 12px; }
+  .pied { font-size: 11.5px; color: var(--gris); line-height: 1.45; margin-top: 12px; }
+  .pied a { color: var(--eau); }
+  .localiser { position: fixed; z-index: 1000; right: 16px; bottom: 28px; background: #fff; border: 0; border-radius: 999px; padding: 10px 14px; font-size: 14px; box-shadow: 0 3px 12px rgba(0,0,0,.2); cursor: pointer; }
+  .leaflet-popup-content { font-size: 13.5px; line-height: 1.5; }
+  .leaflet-popup-content a { color: var(--eau); font-weight: 600; }
+  .station span { display: block; width: 14px; height: 14px; border-radius: 3px; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,.4); transform: rotate(45deg); }
+  @media (max-width: 640px) {
+    .panneau { top: auto; bottom: 0; left: 0; width: 100%; max-height: 62%; border-radius: 16px 16px 0 0; }
+    .tete { border-radius: 16px 16px 0 0; }
+    .tete .plier { display: inline-block; }
+    .panneau.plie .corps { display: none; }
+    .localiser { bottom: auto; top: 12px; right: auto; left: 12px; }
+  }
+</style>
+</head>
+<body>
+<div id="carte" role="application" aria-label="Carte des coins de pêche"></div>
+
+<section class="panneau" id="panneau">
+  <div class="tete">
+    <div>
+      <h1>🐟 poiscaille</h1>
+      <p>Coins de pêche · Alsace, Lorraine, Vosges</p>
+    </div>
+    <button class="plier" id="plier" aria-expanded="true">Masquer</button>
+  </div>
+  <div class="corps">
+    <div class="avenir" id="avenir" hidden></div>
+
+    <label class="titre">Poisson</label>
+    <div class="especes" id="especes"></div>
+
+    <div class="regle" id="regle"></div>
+
+    <div class="bascule" role="group" aria-label="Type de carte">
+      <button id="mode-jour" aria-pressed="true">Prévisions</button>
+      <button id="mode-potentiel" aria-pressed="false">Potentiel</button>
+    </div>
+
+    <div id="bloc-jours">
+      <div class="jours" id="jours"></div>
+      <p class="petit" id="jours-legende"></p>
+    </div>
+
+    <div class="etat" id="etat">
+      <div class="statut"><span class="pt"></span><span>Chargement…</span></div>
+      <div class="detail"></div>
+    </div>
+    <div class="lune" id="lune"></div>
+
+    <div class="barre"></div>
+    <div class="barre-txt"><span>Peu favorable</span><span>400</span><span>Exceptionnel (1000)</span></div>
+
+    <div class="autour">
+      <label class="titre">Autour de moi</label>
+      <div class="rayon">
+        <input type="range" id="rayon" min="1" max="100" step="1" value="15" aria-label="Rayon de recherche en kilomètres">
+        <span id="rayon-txt">15 km</span>
+      </div>
+      <div class="resultats" id="resultats">
+        <p class="aide">Touchez « Me localiser » pour voir les meilleurs coins de pêche autour de vous. Vous pourrez ensuite déplacer le point bleu, ou faire un clic droit (appui long sur téléphone) pour chercher ailleurs.</p>
+      </div>
+    </div>
+
+    <div class="fiche" id="fiche"></div>
+
+    <div class="pied">
+      La carte indique des eaux favorables, jamais une certitude. Carte de pêche obligatoire. Les dates affichées suivent le cadre national :
+      vérifiez toujours l'arrêté préfectoral de votre département, la catégorie de l'eau et le règlement de l'AAPPMA (parcours privés, réserves, tailles et quotas).
+      Les températures de l'eau sont des estimations.<br>
+      Données : IGN (BD TOPO, ADMIN EXPRESS), OFB et Hub'Eau (pêches scientifiques, débits), Copernicus, Open-Meteo, OpenStreetMap.
+    </div>
+  </div>
+</section>
+
+<button class="localiser" id="localiser">📍 Me localiser</button>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const FICHES = {
+  truite: { milieu: "Ruisseaux et rivières vives, eau fraîche et bien oxygénée (zone à truite des Vosges, sources de la plaine).", conseil: "Plus active entre 8 et 15 °C ; une légère montée d'eau teintée est souvent propice." },
+  ombre: { milieu: "Rivières moyennes au courant régulier et au fond de graviers.", conseil: "Ouverture plus tardive que la truite (3e samedi de mai) ; espèce fragile, souvent graciée." },
+  brochet: { milieu: "Eaux calmes et herbiers : étangs, gravières, bras morts, canaux, grandes rivières lentes.", conseil: "Actif sur une large plage de températures ; fermé en 2e catégorie de fin janvier à fin avril." },
+  sandre: { milieu: "Grandes eaux profondes et un peu troubles : Rhin, canaux, grandes rivières, grandes gravières et retenues.", conseil: "Préfère la pénombre : matin, soir et temps couvert." },
+  perche: { milieu: "Étangs, gravières, lacs, canaux et rivières lentes, près des obstacles.", conseil: "Vit en bancs : là où l'on en prend une, il y en a d'autres." },
+  carpe: { milieu: "Étangs, gravières, canaux, grandes rivières lentes et retenues.", conseil: "Active dans une eau chaude (17 à 26 °C) ; la pêche de nuit n'est autorisée que sur les parcours désignés." },
+  blancs: { milieu: "Gardon, brème, chevesne, barbeau, tanche : presque toutes les eaux calmes à moyennement courantes.", conseil: "Pêche au coup ou à l'anglaise ; idéale pour débuter." },
+  silure: { milieu: "Rhin, grandes rivières (Moselle, Ill aval), canaux et grandes gravières.", conseil: "Très actif quand l'eau dépasse 18 °C, surtout la nuit et par temps orageux." },
+};
+const TYPES = { riviere: "Rivière", canal: "Canal", rhin: "Rhin", etang: "Étang", graviere: "Gravière", lac: "Lac", retenue: "Retenue", port: "Bassin portuaire" };
+const COULEURS = { "bon moment": "var(--bon)", "conditions moyennes": "var(--moyen)", "peu favorable": "var(--faible)", "pêche fermée": "var(--ferme)" };
+const couleurValeur = (v) => v >= 650 ? "#82204b" : v >= 400 ? "#d9452b" : v >= 200 ? "#e8892f" : v >= 80 ? "#e6c13e" : "#9fb8c8";
+const km = (d) => d < 1 ? `${Math.round(d * 1000)} m` : `${d.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} km`;
+const dateFr = (iso) => new Date(iso + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+
+const carte = L.map("carte", { zoomControl: false, preferCanvas: true }).setView([48.45, 6.6], 8);
+L.control.zoom({ position: "topright" }).addTo(carte);
+const wmts = (c, f) => "https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=" + c + "&STYLE=normal&TILEMATRIXSET=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&FORMAT=" + f;
+const fonds = {
+  "Plan IGN": L.tileLayer(wmts("GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2", "image/png"), { maxZoom: 18, attribution: "© IGN" }),
+  "Photos aériennes": L.tileLayer(wmts("ORTHOIMAGERY.ORTHOPHOTOS", "image/jpeg"), { maxZoom: 18, attribution: "© IGN" }),
+  "OpenStreetMap": L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 18, attribution: "© OpenStreetMap" }),
+};
+fonds["Plan IGN"].addTo(carte);
+const coucheStations = L.layerGroup();
+const controle = L.control.layers(fonds, { "Débits en temps réel": coucheStations }, { position: "topright" }).addTo(carte);
+const rendu = L.canvas({ padding: 0.3 });
+
+let info = null, eaux = null, couche = null, espece = "brochet", mode = "jour", jourSel = 0;
+const jourCharges = {};
+try { espece = localStorage.getItem("pc-espece") || espece; mode = localStorage.getItem("pc-mode") || mode; } catch (e) {}
+const enregistrer = () => { try { localStorage.setItem("pc-espece", espece); localStorage.setItem("pc-mode", mode); } catch (e) {} };
+const idxEsp = () => eaux.especes.indexOf(espece);
+
+function chargerJour(esp) {
+  if (!jourCharges[esp]) jourCharges[esp] = fetch(`donnees/jour_${esp}.json?d=${info.date}`).then((r) => r.json()).catch(() => ({ j: [] }));
+  return jourCharges[esp];
+}
+
+async function scoresActuels() {
+  if (mode === "potentiel") return eaux.features.map((f) => f.properties.p[idxEsp()]);
+  const d = await chargerJour(espece);
+  return d.j[jourSel] || eaux.features.map(() => 0);
+}
+
+function style(f, s) {
+  const p = f.properties, riv = ["riviere", "canal", "rhin"].includes(p.t), col = couleurValeur(s);
+  if (riv) return { color: col, weight: (p.t === "rhin" ? 4 : 1.2 + (p.w || 0) * 0.8) + (s >= 400 ? 1 : 0), opacity: s >= 80 ? 0.95 : 0.55 };
+  return { color: s >= 80 ? col : "#7d9aab", weight: 1, fillColor: col, fillOpacity: s >= 80 ? 0.6 : 0.25 };
+}
+
+let scores = [];
+async function dessiner() {
+  scores = await scoresActuels();
+  if (!couche) {
+    couche = L.geoJSON(eaux, { renderer: rendu, style: (f) => style(f, 0) }).addTo(carte);
+    couche.on("click", (ev) => ouvrirPopup(ev.layer, ev.latlng));
+  }
+  couche.eachLayer((l) => l.setStyle(style(l.feature, scores[l.feature.properties.i] || 0)));
+}
+
+function ouvrirPopup(layer, latlng) {
+  const p = layer.feature.properties, s = scores[p.i] || 0, e = info.especes[espece];
+  const vues = (p.v || []).map((x) => { const [k, a] = x.split(":"); return `${info.especes[k] ? info.especes[k].nom.toLowerCase() : k} (${a})`; });
+  let html = `<b>${p.n || TYPES[p.t]}</b>${p.n ? ` · ${TYPES[p.t].toLowerCase()}` : ""}<br>`;
+  html += `${e.nom} : <b>${s}/1000</b> ${mode === "jour" ? (jourSel === 0 ? "aujourd'hui" : "le " + dateFr(info.dates[jourSel])) : "(potentiel)"}<br>`;
+  html += `Potentiel toute saison : ${p.p[idxEsp()]}/1000<br>`;
+  if (p.s) html += `Surface : ${p.s.toLocaleString("fr-FR")} ha · `;
+  if (p.a) html += `altitude ${p.a} m<br>`;
+  if (p.f) html += `${p.f === 2 ? "Lieu de pêche d'une association (AAPPMA)" : "Lieu de pêche signalé"} selon OpenStreetMap<br>`;
+  if (vues.length) html += `Vu lors des pêches scientifiques : ${vues.join(", ")}<br>`;
+  html += `<a href="https://www.google.com/maps/dir/?api=1&destination=${latlng.lat.toFixed(5)},${latlng.lng.toFixed(5)}" target="_blank" rel="noopener">Itinéraire</a>`;
+  L.popup().setLatLng(latlng).setContent(html).openOn(carte);
+}
+
+function afficherAvenir() {
+  const zone = document.getElementById("avenir"), maintenant = [], avenir = [];
+  for (const [cle, p] of Object.entries(info.previsions)) {
+    const v = p.zone, max = Math.max(...v.slice(1)), k = v.indexOf(max, 1), nom = info.especes[cle].nom;
+    if (p.statut[0] === "pêche fermée") continue;
+    if (v[0] >= 300) maintenant.push({ cle, nom, force: v[0] });
+    else if (max >= 300 && max - v[0] >= 150) avenir.push({ cle, k, force: max,
+      txt: `<b>${nom}</b> : conditions ${max >= 500 ? "très " : ""}favorables ${k === 1 ? "dès demain" : "vers " + new Date(info.dates[k] + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric" })}${k >= 4 ? " (tendance)" : ""}` });
+  }
+  maintenant.sort((a, b) => b.force - a.force); avenir.sort((a, b) => b.force - a.force);
+  const lien = (c, k, t) => `<a href="#" data-e="${c}" data-k="${k}">${t}</a>`;
+  zone.innerHTML = `<h3>${info.zone.nom} (${info.zone.rayon_km} km)</h3>` +
+    `<p class="ligne"><b>En ce moment</b> : ${maintenant.length ? maintenant.map((x) => lien(x.cle, 0, x.nom.toLowerCase())).join(", ") : "rien de très favorable"}.</p>` +
+    (avenir.length ? avenir.slice(0, 4).map((x) => `<p class="ligne">${lien(x.cle, x.k, x.txt)}</p>`).join("") : `<p class="ligne">Pas d'amélioration nette annoncée dans les 7 jours.</p>`);
+  zone.querySelectorAll("a").forEach((a) => a.onclick = (ev) => { ev.preventDefault(); espece = a.dataset.e; mode = "jour"; jourSel = +a.dataset.k; enregistrer(); afficher(); });
+  zone.hidden = false;
+}
+
+function afficherJours() {
+  const bloc = document.getElementById("bloc-jours"), p = info.previsions[espece];
+  bloc.hidden = mode !== "jour";
+  if (mode !== "jour") return;
+  document.getElementById("jours").innerHTML = info.dates.map((d, k) => {
+    const v = p.zone[k], lib = k === 0 ? "Auj." : k === 1 ? "Dem." : new Date(d + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "short" }).replace(".", "") + " " + +d.slice(8);
+    return `<button data-k="${k}" aria-pressed="${k === jourSel}" class="${k >= 4 ? "tendance" : ""}" title="${dateFr(d)} : ${v}/1000"><span>${lib}</span>` +
+      `<span class="colonne"><span style="height:${Math.max(4, v / 10)}%;background:${couleurValeur(v)}"></span></span><span>${v}</span></button>`;
+  }).join("");
+  document.querySelectorAll("#jours button").forEach((b) => b.onclick = () => { jourSel = +b.dataset.k; afficher(); });
+  document.getElementById("jours-legende").textContent = `Score des meilleures eaux ${info.zone.nom} (${info.zone.rayon_km} km), sur 1000. Fiable sur 3 jours ; au-delà (pointillés), c'est une tendance.`;
+}
+
+function afficherEtat() {
+  const e = info.especes[espece], m = info.meteo, etat = document.getElementById("etat");
+  const st = mode === "jour" ? info.previsions[espece].statut[jourSel] : null;
+  if (mode === "potentiel") {
+    etat.querySelector(".statut").innerHTML = `<span class="pt" style="background:var(--eau)"></span><span>Potentiel toute saison</span>`;
+    etat.querySelector(".detail").textContent = "Eaux où l'espèce a le plus de chances de vivre, d'après les pêches scientifiques, la taille et la pente des rivières et le type de plan d'eau, sans tenir compte de la météo.";
+    return;
+  }
+  etat.querySelector(".statut").innerHTML = `<span class="pt" style="background:${COULEURS[st]}"></span><span>${st.charAt(0).toUpperCase() + st.slice(1)}</span>`;
+  let d = jourSel === 0 ? `Mise à jour ${dateFr(info.date)}. ` : `Prévision pour ${dateFr(info.dates[jourSel])}${jourSel >= 4 ? " (tendance)" : ""}. `;
+  d += `Air sur 7 jours : ${m.air_7j} °C ; eau estimée : ${m.eau_rivieres ?? "?"} °C en rivière, ${m.eau_plans ?? "?"} °C en plan d'eau. `;
+  d += `Pluie : ${m.pluie_7j_mm} mm ces 7 derniers jours, ${m.pluie_prevue_7j_mm} mm prévus. `;
+  if (m.pression_3j_hpa != null) d += `Pression ${m.pression_3j_hpa < -3 ? "en baisse" : m.pression_3j_hpa > 3 ? "en hausse" : "stable"} (${m.pression_3j_hpa > 0 ? "+" : ""}${m.pression_3j_hpa} hPa en 3 jours).`;
+  etat.querySelector(".detail").textContent = d;
+}
+
+async function afficher() {
+  const e = info.especes[espece];
+  document.getElementById("especes").innerHTML = Object.entries(info.especes).map(([k, v]) =>
+    `<button data-e="${k}" aria-pressed="${k === espece}"><span class="pt" style="background:${COULEURS[v.statut]}"></span>${v.nom}</button>`).join("");
+  document.querySelectorAll("#especes button").forEach((b) => b.onclick = () => { espece = b.dataset.e; enregistrer(); afficher(); });
+  document.getElementById("mode-jour").setAttribute("aria-pressed", mode === "jour");
+  document.getElementById("mode-potentiel").setAttribute("aria-pressed", mode === "potentiel");
+  const regle = document.getElementById("regle"), ferme = e.reglementation.startsWith("fermée");
+  regle.className = "regle" + (ferme ? " ferme" : "");
+  regle.innerHTML = `<b>Pêche ${e.reglementation}</b> (cadre national). Vérifiez l'arrêté de votre département et le règlement de l'AAPPMA.`;
+  afficherAvenir(); afficherJours(); afficherEtat();
+  const l = info.lune;
+  document.getElementById("lune").textContent = l ? `${l.emoji} ${l.phase} (${l.illumination} %), pour information.` : "";
+  const f = FICHES[espece];
+  document.getElementById("fiche").innerHTML = `<h2>${e.nom}</h2><dl><dt>Milieu</dt><dd>${f.milieu}</dd><dt>Conseil</dt><dd>${f.conseil}</dd></dl>`;
+  await dessiner();
+  if (centre) chercherAutour(false);
+}
+
+document.getElementById("mode-jour").onclick = () => { mode = "jour"; enregistrer(); afficher(); };
+document.getElementById("mode-potentiel").onclick = () => { mode = "potentiel"; enregistrer(); afficher(); };
+document.getElementById("plier").onclick = () => {
+  const p = document.getElementById("panneau"), plie = p.classList.toggle("plie");
+  document.getElementById("plier").textContent = plie ? "Afficher" : "Masquer";
+};
+
+function afficherStations() {
+  const coul = { "crue": "#b3261e", "hautes eaux": "#e8892f", "normal": "#2f7d4a", "basses eaux": "#c58a1c", "étiage sévère": "#7a4b2a" };
+  coucheStations.clearLayers();
+  for (const s of info.stations || []) {
+    const t = s.tendance > 1.1 ? "en hausse" : s.tendance < 0.9 ? "en baisse" : "stable";
+    L.marker([s.lat, s.lon], { icon: L.divIcon({ className: "station", html: `<span style="background:${coul[s.etat]}"></span>`, iconSize: [14, 14] }) })
+      .bindPopup(`<b>${s.nom}</b><br>Débit : ${Math.round(s.ratio * 100)} % du débit habituel en cette saison (${s.etat}), ${t} sur 24 h.`)
+      .addTo(coucheStations);
+  }
+}
+
+// ---- Autour de moi ----
+const DIRECTIONS = ["au nord", "au nord-est", "à l'est", "au sud-est", "au sud", "au sud-ouest", "à l'ouest", "au nord-ouest"];
+const groupeCoins = L.layerGroup().addTo(carte);
+let centre = null, marqueurMoi = null, cercle = null, rayon = 15, marqueurs = [], centres = null;
+try { rayon = Math.min(100, Math.max(1, +localStorage.getItem("pc-rayon") || 15)); } catch (e) {}
+const curseur = document.getElementById("rayon"), texteRayon = document.getElementById("rayon-txt");
+curseur.value = rayon; texteRayon.textContent = rayon + " km";
+
+function pointCentral(g) {
+  let c = g.coordinates;
+  if (g.type === "MultiLineString" || g.type === "Polygon") c = c[0];
+  if (g.type === "MultiPolygon") c = c[0][0];
+  const m = c[Math.floor(c.length / 2)];
+  return { lat: m[1], lng: m[0] };
+}
+function distanceKm(a, b) {
+  const r = Math.PI / 180, dLat = (b.lat - a.lat) * r, dLon = (b.lng - a.lng) * r;
+  return 12742 * Math.asin(Math.sqrt(Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLon / 2) ** 2));
+}
+function direction(a, b) {
+  const r = Math.PI / 180, y = Math.sin((b.lng - a.lng) * r) * Math.cos(b.lat * r);
+  const x = Math.cos(a.lat * r) * Math.sin(b.lat * r) - Math.sin(a.lat * r) * Math.cos(b.lat * r) * Math.cos((b.lng - a.lng) * r);
+  return DIRECTIONS[Math.round(((Math.atan2(y, x) / r + 360) % 360) / 45) % 8];
+}
+
+function placerCentre(latlng, ajuster) {
+  centre = latlng;
+  if (!marqueurMoi) {
+    marqueurMoi = L.marker(latlng, { draggable: true, zIndexOffset: 1000, icon: L.divIcon({ className: "moi", html: "<span></span>", iconSize: [24, 24] }) }).addTo(carte);
+    marqueurMoi.on("dragend", () => placerCentre(marqueurMoi.getLatLng(), false));
+  } else marqueurMoi.setLatLng(latlng);
+  return chercherAutour(ajuster);
+}
+
+async function chercherAutour(ajuster) {
+  if (!centre || !eaux) return;
+  if (!centres) centres = eaux.features.map((f) => pointCentral(f.geometry));
+  if (!cercle) cercle = L.circle(centre, { radius: rayon * 1000, color: "#12324a", weight: 1.5, dashArray: "5 6", fill: false, interactive: false }).addTo(carte);
+  cercle.setLatLng(centre); cercle.setRadius(rayon * 1000);
+  if (ajuster) carte.fitBounds(cercle.getBounds(), { padding: [24, 24] });
+  const s = await scoresActuels(), cand = [];
+  eaux.features.forEach((f, i) => {
+    const v = s[f.properties.i] || 0;
+    if (v < 80) return;
+    const d = distanceKm(centre, centres[i]);
+    if (d <= rayon) cand.push({ f, c: centres[i], v, d });
+  });
+  cand.sort((a, b) => b.v - a.v || a.d - b.d);
+  // Un seul résultat par cours d'eau ou plan d'eau nommé, pour varier les propositions
+  const vus = new Set(), top = [];
+  for (const x of cand) {
+    const cle = x.f.properties.n ? x.f.properties.t + x.f.properties.n : "i" + x.f.properties.i;
+    if (vus.has(cle)) continue;
+    vus.add(cle); top.push(x);
+    if (top.length === 10) break;
+  }
+  groupeCoins.clearLayers();
+  marqueurs = top.map((x, i) => L.marker(x.c, { icon: L.divIcon({ className: "coin", html: `<span style="background:${couleurValeur(x.v)}">${i + 1}</span>`, iconSize: [30, 30] }) })
+    .on("click", () => ouvrirPopup({ feature: x.f }, L.latLng(x.c))).addTo(groupeCoins));
+  const zone = document.getElementById("resultats");
+  if (!top.length) {
+    zone.innerHTML = `<p class="aide">${info.especes[espece].reglementation.startsWith("fermée") && mode === "jour" ? "La pêche de cette espèce est fermée en ce moment. Passez en mode « Potentiel » pour repérer les bonnes eaux." : "Aucune eau favorable dans ce rayon. Agrandissez le rayon ou choisissez un autre jour."}</p>`;
+    return;
+  }
+  zone.innerHTML = `<ol>${top.map((x, i) => `<li><button data-i="${i}"><span class="num" style="background:${couleurValeur(x.v)}">${i + 1}</span>` +
+    `<span>${x.v} · ${x.f.properties.n || TYPES[x.f.properties.t]} <span class="km">· ${km(x.d)} ${direction(centre, x.c)}</span></span></button></li>`).join("")}</ol>`;
+  zone.querySelectorAll("button").forEach((b) => b.onclick = () => {
+    const x = top[+b.dataset.i];
+    if (window.innerWidth <= 640 && !document.getElementById("panneau").classList.contains("plie")) document.getElementById("plier").click();
+    carte.setView(x.c, Math.max(carte.getZoom(), 14));
+    ouvrirPopup({ feature: x.f }, L.latLng(x.c));
+  });
+}
+
+curseur.addEventListener("input", () => { rayon = +curseur.value; texteRayon.textContent = rayon + " km"; try { localStorage.setItem("pc-rayon", rayon); } catch (e) {} chercherAutour(false); });
+curseur.addEventListener("change", () => { if (cercle) carte.fitBounds(cercle.getBounds(), { padding: [24, 24] }); });
+document.getElementById("localiser").onclick = () => {
+  document.getElementById("resultats").innerHTML = `<p class="aide">Recherche de votre position…</p>`;
+  carte.locate({ setView: false, enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 });
+};
+carte.on("locationfound", (ev) => placerCentre(ev.latlng, true));
+carte.on("locationerror", () => placerCentre(centre || carte.getCenter(), !centre).then(() =>
+  document.getElementById("resultats").insertAdjacentHTML("afterbegin", `<p class="aide" style="margin-bottom:8px">Position introuvable : déplacez le point bleu à l'endroit voulu.</p>`)));
+carte.on("contextmenu", (ev) => placerCentre(ev.latlng, !centre));
+
+fetch("donnees/info.json", { cache: "no-store" }).then((r) => r.json())
+  .then((i) => fetch(`donnees/eaux.json?d=${i.date_eaux || i.date}`).then((r) => r.json()).then((e) => [i, e]))
+  .then(([i, e]) => { info = i; eaux = e; if (!info.especes[espece]) espece = Object.keys(info.especes)[0]; afficherStations(); afficher(); })
+  .catch(() => { document.querySelector("#etat .statut").textContent = "Cartes pas encore disponibles"; document.querySelector("#etat .detail").textContent = "Les premières données sont en cours de calcul. Revenez dans quelques minutes."; });
+</script>
+</body>
+</html>

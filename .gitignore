@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+site/donnees/jour_*.json
+site/donnees/info.json

@@ -1,0 +1,48 @@
+name: Conditions du jour
+
+# Chaque matin : météo, débits, conditions du jour et prévisions, publication du site.
+on:
+  schedule:
+    - cron: "23 4 * * *"
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Préparation des données"]
+    types: [completed]
+  push:
+    branches: [main]
+    paths: ["site/index.html", "scripts/04_jour.py", "scripts/commun.py", "requirements.txt"]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  jour:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploiement.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Conditions du jour et prévisions
+        run: |
+          if [ -f data/eaux.gpkg ] && [ -f data/potentiel.csv ]; then python scripts/04_jour.py; else echo "Pas encore de données : lancez la préparation."; fi
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deploiement
+        uses: actions/deploy-pages@v4
