@@ -62,10 +62,22 @@ def get(url, params=None, essais=6, timeout=180, methode="GET", data=None):
             attente = min(attente * 2, 120)
 
 
+def sans_nan(o):
+    """Valeurs manquantes (NaN, infini) remplacées par null : le JSON reste lisible par les navigateurs."""
+    if isinstance(o, dict):
+        return {k: sans_nan(v) for k, v in o.items()}
+    if isinstance(o, (list, tuple)):
+        return [sans_nan(v) for v in o]
+    if isinstance(o, float) and not np.isfinite(o):
+        return None
+    return o
+
+
 def ecrire_json(chemin, obj, compact=False):
     Path(chemin).parent.mkdir(parents=True, exist_ok=True)
-    texte = json.dumps(obj, ensure_ascii=False, separators=(",", ":")) if compact else \
-        json.dumps(obj, ensure_ascii=False, indent=1)
+    obj = sans_nan(obj)
+    texte = json.dumps(obj, ensure_ascii=False, separators=(",", ":"), allow_nan=False) if compact else \
+        json.dumps(obj, ensure_ascii=False, indent=1, allow_nan=False)
     Path(chemin).write_text(texte, encoding="utf-8")
 
 

@@ -258,8 +258,9 @@ def ecoulements(eaux, jour):
         f[i] = F_ONDE.get(code, 1.0)
         if f[i] < 1:
             detail[str(int(eaux["id"].iloc[i]))] = [code, str(df["date_observation"].iloc[k[i]])[:10]]
-    obs = [{"nom": r.libelle_station, "riviere": r.libelle_cours_eau, "lat": round(float(r.latitude), 5),
-            "lon": round(float(r.longitude), 5), "code": str(r.code_ecoulement), "libelle": r.libelle_ecoulement,
+    texte = lambda v: "" if pd.isna(v) else str(v)
+    obs = [{"nom": texte(r.libelle_station), "riviere": texte(r.libelle_cours_eau), "lat": round(float(r.latitude), 5),
+            "lon": round(float(r.longitude), 5), "code": str(r.code_ecoulement), "libelle": texte(r.libelle_ecoulement),
             "date": str(r.date_observation)[:10]} for r in df.itertuples()]
     print(f"  {len(df)} stations ONDE observées depuis le {debut} ; {len(detail)} morceaux à sec ou presque")
     return f, detail, obs
