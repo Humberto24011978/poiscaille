@@ -165,24 +165,7 @@ def main():
     zone = dep.union_all()
     emprise = tuple(dep.to_crs(4326).total_bounds.round(3))
 
-    print("Cours d'eau (BD TOPO)...")
-    tr = par_tuiles("BDTOPO_V3:troncon_hydrographique", emprise, "tronçons",
-                    champs=["cleabs", "nature", "fictif", "persistance", "numero_d_ordre", "classe_de_largeur",
-                            "cpx_toponyme_de_cours_d_eau"])
-    print(f"  {len(tr)} tronçons bruts")
-    fictif = tr["fictif"].astype(str).str.lower().isin(["true", "1"])
-    nomme = tr["cpx_toponyme_de_cours_d_eau"].notna()
-    ordre = pd.to_numeric(tr["numero_d_ordre"], errors="coerce").fillna(0)
-    garder = (~fictif & tr["nature"].isin(NATURES_COURS) & (tr["persistance"] == "Permanent")
-              & ((ordre >= 2) | nomme | (tr["nature"] != "Ecoulement naturel")))
-    tr = tr[garder]
-    tr = tr[tr.intersects(zone)]
-    print(f"  {len(tr)} tronçons permanents retenus")
-    riv = morceaux_rivieres(tr)
-    riv["type"] = np.where(riv["canal"] == 1, "canal", "riviere")
-    riv.loc[riv["nom"].str.contains("Rhin", case=False) & (riv["largeur"] >= 3), "type"] = "rhin"
-    print(f"  {len(riv)} morceaux de rivière")
-
+    # Plans d'eau d'abord : ils servent à écarter les axes fictifs qui traversent les lacs et étangs
     print("Plans d'eau (BD TOPO, surfaces en eau)...")
     sh = par_tuiles("BDTOPO_V3:surface_hydrographique", emprise, "surfaces en eau",
                     champs=["cleabs", "nature", "persistance", "cpx_toponyme_de_plan_d_eau", "liens_vers_plan_d_eau"])
@@ -198,6 +181,36 @@ def main():
     pl["type"] = pl["nature"].map(NATURES_PLANS)
     pl["surface_ha"] = (pl.area / 1e4).round(2)
     print(f"  {len(pl)} plans d'eau d'au moins 0,3 ha ; {pl['type'].value_counts().to_dict()}")
+
+    print("Cours d'eau (BD TOPO)...")
+    tr = par_tuiles("BDTOPO_V3:troncon_hydrographique", emprise, "tronçons",
+                    champs=["cleabs", "nature", "fictif", "persistance", "numero_d_ordre", "classe_de_largeur",
+                            "cpx_toponyme_de_cours_d_eau"])
+    print(f"  {len(tr)} tronçons bruts")
+    nomme = tr["cpx_toponyme_de_cours_d_eau"].notna()
+    ordre = pd.to_numeric(tr["numero_d_ordre"], errors="coerce").fillna(0)
+    garder = (tr["nature"].isin(NATURES_COURS) & (tr["persistance"] == "Permanent")
+              & ((ordre >= 2) | nomme | (tr["nature"] != "Ecoulement naturel")))
+    tr = tr[garder]
+    tr = tr[tr.intersects(zone)]
+    # Les grandes rivières et les canaux (Rhin, Ill, Moselle, Meuse, Sarre, canaux de navigation...) sont dessinés
+    # comme des surfaces en eau : leur axe est un tronçon « fictif ». On le garde, sauf à l'intérieur des lacs et
+    # étangs, déjà comptés comme plans d'eau.
+    fictif = tr["fictif"].astype(str).str.lower().isin(["true", "1"])
+    fic = tr[fictif]
+    if len(fic) and len(pl):
+        j = gpd.sjoin(fic[["geometry"]], pl[["geometry"]], how="inner", predicate="intersects")
+        cand = fic.loc[j.index.unique()]
+        surfaces = pl.geometry.union_all()
+        dans = cand.geometry.intersection(surfaces).length / cand.length.clip(lower=1)
+        tr = tr.drop(dans[dans > 0.5].index)
+    print(f"  {len(tr)} tronçons permanents retenus, dont {int(tr['fictif'].astype(str).str.lower().isin(['true', '1']).sum())} "
+          "axes de grandes rivières ou canaux")
+    riv = morceaux_rivieres(tr)
+    riv["type"] = np.where(riv["canal"] == 1, "canal", "riviere")
+    rhin = riv["nom"].str.contains(r"^(?:le |la )?(?:Vieux |Petit )?Rhin$|Grand Canal d'Alsace", case=False, regex=True)
+    riv.loc[rhin & (riv["largeur"] >= 3), "type"] = "rhin"
+    print(f"  {len(riv)} morceaux de rivière ; {riv['type'].value_counts().to_dict()}")
 
     print("Altitude (Copernicus GLO-30)...")
     alt = altitude_grille()
