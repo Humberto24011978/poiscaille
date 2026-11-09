@@ -25,6 +25,14 @@
   .tete p { margin: 2px 0 0; font-size: 12.5px; opacity: .85; }
   .tete .plier { margin-left: auto; background: none; border: 1px solid rgba(255,255,255,.35); color: #fff; border-radius: 8px; padding: 4px 9px; font-size: 13px; cursor: pointer; display: none; }
   .corps { padding: 14px 16px 16px; }
+  .recherche { position: relative; margin-bottom: 14px; }
+  .recherche input { width: 100%; box-sizing: border-box; border: 1px solid var(--ligne); border-radius: 10px; padding: 9px 12px; font-size: 16px; background: #fff; color: var(--encre); }
+  .suggestions { position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 1200; background: #fff; border: 1px solid var(--ligne); border-radius: 10px; box-shadow: 0 6px 18px rgba(0,0,0,.15); overflow: hidden; }
+  .suggestions button { display: block; width: 100%; text-align: left; border: 0; background: #fff; padding: 8px 12px; font-size: 14px; cursor: pointer; color: var(--encre); }
+  .suggestions button + button { border-top: 1px solid var(--ligne); }
+  .suggestions button:hover, .suggestions button.actif { background: #f1eee6; }
+  .suggestions .type, .suggestions .vide { color: var(--gris); font-size: 12px; }
+  .suggestions .vide { padding: 8px 12px; }
   label.titre { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: .6px; color: var(--gris); margin: 0 0 6px; }
   .avenir { background: #eef6f9; border: 1px solid #c6dde6; border-radius: 12px; padding: 10px 12px; margin-bottom: 14px; }
   .avenir h3 { margin: 0 0 4px; font-size: 13px; text-transform: uppercase; letter-spacing: .5px; color: var(--eau); }
@@ -108,6 +116,11 @@
     <button class="plier" id="plier" aria-expanded="true">Masquer</button>
   </div>
   <div class="corps">
+    <div class="recherche">
+      <input id="recherche" type="search" placeholder="Commune, sommet, col, abri…" autocomplete="off" enterkeyhint="search" aria-label="Rechercher un lieu">
+      <div class="suggestions" id="suggestions" role="listbox" hidden></div>
+    </div>
+
     <div class="avenir" id="avenir" hidden></div>
 
     <label class="titre">Poisson</label>
@@ -629,6 +642,81 @@ async function chercherAutour(ajuster) {
 
 curseur.addEventListener("input", () => { rayon = +curseur.value; texteRayon.textContent = rayon + " km"; try { localStorage.setItem("pc-rayon", rayon); } catch (e) {} chercherAutour(false); });
 curseur.addEventListener("change", () => { if (cercle) carte.fitBounds(cercle.getBounds(), { padding: [24, 24] }); });
+// ---- Recherche d'un lieu : toponymes IGN (communes, lieux-dits, sommets, cols, refuges, forêts)
+// et OpenStreetMap (abris et refuges du Club Vosgien, sommets, points de vue) ----
+const ZONE_RECH = "4.8,47.4,8.25,49.65";
+const TYPES_OSM = { shelter: "abri", wilderness_hut: "refuge", alpine_hut: "refuge", peak: "sommet", saddle: "col",
+  viewpoint: "point de vue", spring: "source", rock: "rocher", cave_entrance: "grotte", village: "village", town: "ville",
+  city: "ville", hamlet: "hameau", locality: "lieu-dit", isolated_dwelling: "lieu-dit" };
+const champRech = document.getElementById("recherche"), listeRech = document.getElementById("suggestions");
+const sur = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+let rechMinuterie = null, rechJeton = 0, lieux = [], choixLieu = -1, marqueurLieu = null;
+
+async function chercherLieux(q) {
+  const ign = fetch(`https://data.geopf.fr/geocodage/completion?text=${encodeURIComponent(q)}&type=PositionOfInterest&maximumResponses=7&bbox=${ZONE_RECH}`)
+    .then((r) => (r.ok ? r.json() : { results: [] }))
+    .then((j) => (j.results || []).filter((f) => f.x && f.y).map((f) => ({
+      nom: (f.names && f.names[0]) || f.fulltext.split(",")[0], ou: [f.zipcode, f.city].filter(Boolean).join(" "),
+      type: (f.poiType || [])[0] === "administratif" ? "commune" : (f.kind || (f.poiType || [])[0] || ""), lat: f.y, lng: f.x })))
+    .catch(() => []);
+  const osm = fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&bbox=${ZONE_RECH}&lang=fr&limit=10`)
+    .then((r) => (r.ok ? r.json() : { features: [] }))
+    .then((j) => (j.features || []).filter((f) => f.properties.countrycode === "FR" && f.properties.name && TYPES_OSM[f.properties.osm_value])
+      .map((f) => ({ nom: f.properties.name, ou: f.properties.city || f.properties.county || "", type: TYPES_OSM[f.properties.osm_value],
+        lat: f.geometry.coordinates[1], lng: f.geometry.coordinates[0] })))
+    .catch(() => []);
+  const [a, b] = await Promise.all([ign, osm]);
+  // Pour un abri ou un refuge, OpenStreetMap est plus complet : on le met en premier
+  const [premiers, suivants] = /abri|refuge|cabane|hutte|chalet/i.test(q) ? [b, a] : [a, b];
+  const res = [];
+  for (const x of [...premiers, ...suivants]) {
+    if (!res.some((y) => carte.distance([x.lat, x.lng], [y.lat, y.lng]) < 400)) res.push(x);
+  }
+  return res.slice(0, 8);
+}
+
+function montrerLieux() {
+  listeRech.hidden = false;
+  if (!lieux.length) { listeRech.innerHTML = `<div class="vide">Aucun lieu trouvé dans la région</div>`; return; }
+  listeRech.innerHTML = lieux.map((l, i) => `<button type="button" role="option" data-i="${i}" class="${i === choixLieu ? "actif" : ""}">` +
+    `${sur(l.nom)} <span class="type">${sur(l.type)}${l.ou ? " · " + sur(l.ou) : ""}</span></button>`).join("");
+  listeRech.querySelectorAll("button").forEach((b) => b.onclick = () => allerA(lieux[+b.dataset.i]));
+}
+
+function allerA(l) {
+  listeRech.hidden = true;
+  champRech.value = l.nom;
+  champRech.blur();
+  const ll = L.latLng(l.lat, l.lng);
+  if (marqueurLieu) carte.removeLayer(marqueurLieu);
+  marqueurLieu = L.circleMarker(ll, { radius: 7, color: "#fff", weight: 2, fillColor: "#2a5d8f", fillOpacity: 1 })
+    .bindTooltip(sur(l.nom), { permanent: true, direction: "top", offset: [0, -8] }).addTo(carte);
+  carte.setView(ll, 14);
+  placerCentre(ll, false);          // « Autour de moi » cherche alors autour de ce lieu
+}
+
+champRech.addEventListener("input", () => {
+  clearTimeout(rechMinuterie);
+  const q = champRech.value.trim();
+  if (q.length < 3) { listeRech.hidden = true; return; }
+  rechMinuterie = setTimeout(async () => {
+    const jeton = ++rechJeton;
+    const r = await chercherLieux(q);
+    if (jeton !== rechJeton) return;
+    lieux = r; choixLieu = -1; montrerLieux();
+  }, 350);
+});
+champRech.addEventListener("keydown", (ev) => {
+  if (ev.key === "Escape") { listeRech.hidden = true; return; }
+  if (listeRech.hidden || !lieux.length) return;
+  if (ev.key === "ArrowDown" || ev.key === "ArrowUp") {
+    ev.preventDefault();
+    choixLieu = (choixLieu + (ev.key === "ArrowDown" ? 1 : -1) + lieux.length) % lieux.length;
+    montrerLieux();
+  } else if (ev.key === "Enter") { ev.preventDefault(); allerA(lieux[Math.max(choixLieu, 0)]); }
+});
+document.addEventListener("click", (ev) => { if (!ev.target.closest(".recherche")) listeRech.hidden = true; });
+
 document.getElementById("localiser").onclick = () => {
   document.getElementById("resultats").innerHTML = `<p class="aide">Recherche de votre position…</p>`;
   carte.locate({ setView: false, enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 });
