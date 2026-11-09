@@ -235,8 +235,8 @@ def lire_acces(eaux):
 
 
 def ecoulements(eaux, jour):
-    """Dernière observation du réseau ONDE (45 derniers jours) pour les petits cours d'eau : facteur et détail."""
-    debut = (jour - dt.timedelta(days=45)).isoformat()
+    """Dernière observation du réseau ONDE (30 derniers jours) pour les petits cours d'eau : facteur et détail."""
+    debut = (jour - dt.timedelta(days=JOURS_PASSES)).isoformat()
     lignes = []
     for d in DEPARTEMENTS:
         try:
@@ -304,6 +304,14 @@ def main():
     montee = connu & (tend >= 1.1) & (tend <= 1.8) & (np.nan_to_num(ratio) < 2)
     print("Écoulement des petits cours d'eau (ONDE)...")
     f_onde, assecs, obs_onde = ecoulements(eaux, aujourdhui)
+    # Une observation de cours d'eau à sec ne vaut plus après de bonnes pluies (plus de 25 mm depuis)
+    ids = eaux["id"].astype(int).astype(str).to_numpy()
+    for i in np.where(f_onde < 1)[0]:
+        n = (aujourdhui - dt.date.fromisoformat(assecs[ids[i]][1])).days
+        if n > 0 and pluie[i, max(0, JOURS_PASSES - n + 1):JOURS_PASSES + 1].sum() > 25:
+            f_onde[i] = 1.0
+            assecs.pop(ids[i], None)
+    print(f"  {len(assecs)} morceaux encore à sec ou presque après les pluies récentes")
 
     # Température de l'eau estimée, pour chaque eau et chaque jour (aujourd'hui = indice JOURS_PASSES)
     teau = np.zeros((len(eaux), JOURS_PREVUS + 1))
