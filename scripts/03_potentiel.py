@@ -5,6 +5,8 @@
   (zone à truite en tête de bassin, zone à ombre, à barbeau, puis à brème en plaine).
 - Plans d'eau : règles selon le type (étang, gravière, lac de montagne, grande retenue), la surface et l'altitude.
 - Un lieu de pêche signalé (OpenStreetMap), surtout d'une association, donne un petit bonus.
+- Qualité de l'eau (étape 6) : une eau moyenne, médiocre ou mauvaise (oxygène, ammonium, nitrites, phosphates,
+  matières organiques) ou un peuplement de poissons dégradé (IPR) abaisse le potentiel, surtout pour la truite et l'ombre.
 - Accès (étape 5, si elle a tourné) : statut (domaine public, lot d'AAPPMA, privé), association, catégorie,
   réciprocité, réserves de pêche (score nul : pêche interdite) et parcours spécifiques.
 
@@ -97,6 +99,31 @@ def arrondir(c):
 
 
 STATUTS = {"public": "p", "aappma": "a", "prive": "x"}
+# Qualité de l'eau : facteur selon la classe (1 très bon ... 5 mauvais), et indice poissons (1 excellent ... 5 très mauvais)
+FACTEUR_QUALITE = {0: 1.0, 1: 1.0, 2: 1.0, 3: 0.88, 4: 0.72, 5: 0.5}
+FACTEUR_IPR = {0: 1.0, 1: 1.0, 2: 1.0, 3: 0.93, 4: 0.85, 5: 0.75}
+SENSIBILITE = {"truite": 1.0, "ombre": 1.0, "brochet": 0.7, "sandre": 0.6, "perche": 0.7, "carpe": 0.4,
+               "blancs": 0.5, "silure": 0.4}
+
+
+def lire_qualite(eaux):
+    vide = pd.DataFrame({"q_classe": 0, "q_motif": "", "q_annee": 0, "q_station": "", "ipr_classe": 0,
+                         "ipr_annee": 0}, index=eaux.index)
+    chemin = DATA / "qualite.csv"
+    if not chemin.exists():
+        print("Pas de données de qualité de l'eau (étape 6)")
+        return vide
+    q = pd.read_csv(chemin, keep_default_na=False).drop_duplicates("id").set_index("id")
+    res = vide.copy()
+    for c in vide.columns:
+        if c in q.columns:
+            v = eaux["id"].map(q[c])
+            res[c] = v.where(v.notna(), vide[c])
+    for c in ["q_classe", "q_annee", "ipr_classe", "ipr_annee"]:
+        res[c] = pd.to_numeric(res[c], errors="coerce").fillna(0).astype(int)
+    print("Qualité de l'eau :", res["q_classe"].value_counts().sort_index().to_dict(),
+          "; indice poissons :", res["ipr_classe"].value_counts().sort_index().to_dict())
+    return res
 
 
 def lire_acces(eaux):
@@ -178,9 +205,12 @@ def main():
 
     # Petit bonus pour les lieux de pêche signalés (davantage s'ils relèvent d'une association)
     bonus = 1 + 0.10 * eaux["peche"].to_numpy() + 0.10 * eaux["aappma"].to_numpy()
+    # Qualité de l'eau et état du peuplement de poissons
+    qual = lire_qualite(eaux)
+    f_q = qual["q_classe"].map(FACTEUR_QUALITE).fillna(1).to_numpy() * qual["ipr_classe"].map(FACTEUR_IPR).fillna(1).to_numpy()
     out = pd.DataFrame({"id": eaux["id"]})
     for k in ESP:
-        v = scores[k] * bonus
+        v = scores[k] * bonus * (1 - SENSIBILITE[k] * (1 - f_q))
         ref = np.percentile(v[v > 0], 99.5) if (v > 0).any() else 1
         out[k] = np.rint(np.clip(v / max(ref, 1e-6), 0, 1) ** 1.2 * 1000).astype(int)
     # Accès : statut, association, réciprocité, réserves (étape 5)
@@ -219,6 +249,13 @@ def main():
         if int(row["id"]) in vues:
             p["v"] = sorted(vues[int(row["id"])])
         p.update(proprietes_acces(acces.loc[i]))
+        q = qual.loc[i]
+        if q["q_classe"]:
+            p["q"], p["qa"] = int(q["q_classe"]), int(q["q_annee"])
+            if q["q_motif"]:
+                p["qm"] = str(q["q_motif"])
+        if q["ipr_classe"]:
+            p["ip"], p["ia"] = int(q["ipr_classe"]), int(q["ipr_annee"])
         features.append({"type": "Feature", "properties": p, "geometry": g})
     ecrire_json(DONNEES_SITE / "eaux.json", {"type": "FeatureCollection", "especes": ESP, "features": features}, compact=True)
     ecrire_json(DATA / "potentiel_resume.json", resume)

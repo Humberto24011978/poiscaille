@@ -157,7 +157,9 @@
       vérifiez toujours l'arrêté préfectoral de votre département, la catégorie de l'eau et le règlement de l'AAPPMA (parcours privés, réserves, tailles et quotas).
       Les températures de l'eau sont des estimations ; la pression et la lune ont un effet discuté, d'où leur poids modeste.
       Pêche autorisée d'une demi-heure avant le lever du soleil à une demi-heure après son coucher (carpe de nuit seulement sur les parcours désignés).<br>
-      Données : IGN (BD TOPO, ADMIN EXPRESS), OFB et Hub'Eau (pêches scientifiques, débits), Copernicus, Open-Meteo, OpenStreetMap,
+      La qualité de l'eau provient d'analyses publiées avec 1 à 2 ans de retard : c'est la qualité habituelle, pas une alerte pollution du jour.<br>
+      Données : IGN (BD TOPO, ADMIN EXPRESS), OFB et Hub'Eau (pêches scientifiques, indice poissons, débits, écoulements ONDE),
+      Agences de l'eau (qualité de l'eau), Copernicus, Open-Meteo, OpenStreetMap,
       carte des parcours de la Fédération du Haut-Rhin pour la pêche ; soleil et lune : SunCalc.
     </div>
   </div>
@@ -214,6 +216,19 @@ function htmlAcces(p) {
   if (p.d === "68") liens.push(`<a href="https://www.google.com/maps/d/viewer?mid=1XIAIW73_lXAKp7NfJY9gEgytV84scjQB" target="_blank" rel="noopener">Parcours de la fédération</a>`);
   if (DEPS.includes(p.d)) liens.push(`<a href="https://map.geopeche.com/${p.d}" target="_blank" rel="noopener">Géopêche ${p.d}</a>`);
   if (liens.length) h += liens.join(" · ") + "<br>";
+  return h;
+}
+
+// ---- Qualité de l'eau, indice poissons, petits cours d'eau à sec ----
+const QUALITE = ["", "très bonne", "bonne", "moyenne", "médiocre", "mauvaise"];
+const IPR = ["", "excellent", "bon", "médiocre", "mauvais", "très mauvais"];
+const ONDE_TXT = { "1f": "écoulement faible", "2": "eau sans courant visible", "3": "cours d'eau à sec" };
+function htmlQualite(p) {
+  let h = "";
+  const a = info.assecs && info.assecs[p.i];
+  if (a) h += `<span class="${a[0] === "3" ? "alerte" : "attention"}">💧 ${ONDE_TXT[a[0]] || "écoulement réduit"} (observé le ${new Date(a[1] + "T12:00:00").toLocaleDateString("fr-FR")})</span><br>`;
+  if (p.q) h += `Qualité de l'eau : <b class="${p.q >= 4 ? "attention" : ""}">${QUALITE[p.q]}</b>${p.qm ? ` (${echapper(p.qm)})` : ""} · mesures jusqu'en ${p.qa}<br>`;
+  if (p.ip) h += `État des poissons (indice OFB) : ${IPR[p.ip]} (${p.ia})<br>`;
   return h;
 }
 
@@ -345,7 +360,7 @@ const fonds = {
 };
 fonds["Plan IGN"].addTo(carte);
 const coucheStations = L.layerGroup();
-const controle = L.control.layers(fonds, { "Débits en temps réel": coucheStations }, { position: "topright" }).addTo(carte);
+const controle = L.control.layers(fonds, { "Débits et écoulements": coucheStations }, { position: "topright" }).addTo(carte);
 const rendu = L.canvas({ padding: 0.3 });
 
 let info = null, eaux = null, couche = null, espece = "brochet", mode = "jour", jourSel = 0;
@@ -394,6 +409,7 @@ function ouvrirPopup(layer, latlng) {
   html += `Potentiel toute saison : ${p.p[idxEsp()]}/1000<br>`;
   if (p.s) html += `Surface : ${p.s.toLocaleString("fr-FR")} ha · `;
   if (p.a) html += `altitude ${p.a} m<br>`;
+  html += htmlQualite(p);
   html += htmlAcces(p);
   if (p.f && !p.aa) html += `${p.f === 2 ? "Lieu de pêche d'une association (AAPPMA)" : "Lieu de pêche signalé"} selon OpenStreetMap<br>`;
   if (vues.length) html += `Vu lors des pêches scientifiques : ${vues.join(", ")}<br>`;
@@ -464,7 +480,7 @@ function afficherEtat() {
   const st = mode === "jour" ? pv.statut[jourSel] : null;
   if (mode === "potentiel") {
     etat.querySelector(".statut").innerHTML = `<span class="pt" style="background:var(--eau)"></span><span>Potentiel toute saison</span>`;
-    etat.querySelector(".detail").textContent = "Eaux où l'espèce a le plus de chances de vivre, d'après les pêches scientifiques, la taille et la pente des rivières et le type de plan d'eau, sans tenir compte de la météo.";
+    etat.querySelector(".detail").textContent = "Eaux où l'espèce a le plus de chances de vivre, d'après les pêches scientifiques, la taille et la pente des rivières, le type de plan d'eau et la qualité de l'eau mesurée, sans tenir compte de la météo.";
     document.getElementById("heures-bloc").innerHTML = "";
     return;
   }
@@ -526,6 +542,12 @@ function afficherStations() {
     const t = s.tendance > 1.1 ? "en hausse" : s.tendance < 0.9 ? "en baisse" : "stable";
     L.marker([s.lat, s.lon], { icon: L.divIcon({ className: "station", html: `<span style="background:${coul[s.etat]}"></span>`, iconSize: [14, 14] }) })
       .bindPopup(`<b>${s.nom}</b><br>Débit : ${Math.round(s.ratio * 100)} % du débit habituel en cette saison (${s.etat}), ${t} sur 24 h.`)
+      .addTo(coucheStations);
+  }
+  const coulOnde = { "1": "#2f7d4a", "1a": "#2f7d4a", "1f": "#e6c13e", "2": "#e8892f", "3": "#7a4b2a" };
+  for (const o of info.onde || []) {
+    L.circleMarker([o.lat, o.lon], { radius: 5, color: "#fff", weight: 1.5, fillColor: coulOnde[o.code] || "#8a8f94", fillOpacity: 1 })
+      .bindPopup(`<b>${echapper(o.nom)}</b><br>${echapper(o.libelle)}, observé le ${new Date(o.date + "T12:00:00").toLocaleDateString("fr-FR")} (réseau ONDE)`)
       .addTo(coucheStations);
   }
 }

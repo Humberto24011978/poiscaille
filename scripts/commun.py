@@ -132,3 +132,34 @@ def ouvert(espece, jour):
             debuts = [a for cat in ("1re", "2e") for a, _ in p2[cat]]
         prochain = min(debuts)
     return o1, o2, prochain
+
+
+def stations_vers_rivieres(eaux, sx, sy, meme_cours=5000, proche=300):
+    """Pour chaque morceau de rivière ou canal : position de la station de mesure qui le représente, sinon -1.
+
+    Une station est d'abord rattachée au morceau le plus proche (à « proche » m au plus) ; elle vaut ensuite pour
+    les morceaux du même cours d'eau situés à moins de « meme_cours » m. En cas de choix, la plus proche l'emporte.
+    """
+    import geopandas as gpd
+    import pandas as pd
+    sx, sy = np.asarray(sx, float), np.asarray(sy, float)
+    res = np.full(len(eaux), -1)
+    est_riv = eaux["type"].isin(["riviere", "canal", "rhin"]).to_numpy()
+    if len(sx) == 0 or not est_riv.any():
+        return res
+    e = eaux.reset_index(drop=True)
+    pts = gpd.GeoDataFrame(geometry=gpd.points_from_xy(sx, sy), crs=e.crs)
+    j = gpd.sjoin_nearest(pts, e.loc[est_riv, ["geometry"]], how="left", max_distance=proche, distance_col="dist")
+    j = j[~j.index.duplicated()]
+    piece = j["index_right"].reindex(range(len(sx)))
+    noms = e["nom"].fillna("").astype(str).to_numpy()
+    spiece = np.array([int(p) if pd.notna(p) else -1 for p in piece])
+    snom = np.array([noms[p] if p >= 0 else "" for p in spiece])
+    c = e.geometry.representative_point()
+    cx, cy = c.x.to_numpy(), c.y.to_numpy()
+    for i in np.where(est_riv)[0]:
+        d = np.hypot(sx - cx[i], sy - cy[i])
+        ok = (spiece == i) | ((snom == noms[i]) & (noms[i] != "") & (d <= meme_cours))
+        if ok.any():
+            res[i] = int(np.argmin(np.where(ok, d, np.inf)))
+    return res

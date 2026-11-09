@@ -10,7 +10,7 @@ on:
         description: "Étapes à lancer"
         type: choice
         default: tout
-        options: [tout, eaux, peches, acces, potentiel]
+        options: [tout, eaux, peches, acces, qualite, potentiel]
 
 permissions:
   contents: write
@@ -39,6 +39,9 @@ jobs:
       - name: Accès (domaine public, AAPPMA, réciprocités, réserves, privé)
         if: inputs.etapes == 'tout' || inputs.etapes == 'eaux' || inputs.etapes == 'acces'
         run: python scripts/05_acces.py
+      - name: Qualité de l'eau et indice poissons (Hub'Eau)
+        if: inputs.etapes == 'tout' || inputs.etapes == 'eaux' || inputs.etapes == 'qualite'
+        run: python scripts/06_qualite.py
       - name: 3. Potentiel par espèce
         run: python scripts/03_potentiel.py
       - name: Enregistrer les données

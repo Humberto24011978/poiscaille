@@ -2,7 +2,8 @@
 
 Sources gratuites, sans clé :
 - météo : Open-Meteo (30 jours passés + 7 jours de prévision) ;
-- débits en temps réel : Hub'Eau hydrométrie (stations Vigicrues et DREAL).
+- débits en temps réel : Hub'Eau hydrométrie (stations Vigicrues et DREAL) ;
+- petits cours d'eau à sec ou presque : Hub'Eau écoulement (réseau ONDE de l'OFB, de mai à septembre).
 
 Indice d'activité (0 à 1) = température de l'eau estimée × état du débit × pression × lune × réglementation.
 La pression (baisse lente avant une perturbation, forte hausse après un front) et la lune (nouvelle et pleine lune)
@@ -23,10 +24,14 @@ import pandas as pd
 from pyproj import Transformer
 from scipy.interpolate import RegularGridInterpolator
 
-from commun import BBOX, DATA, DEPARTEMENTS, DONNEES_SITE, ESPECES, ZONE, ecrire_json, get, ouvert, pic, rampe
+from commun import (BBOX, DATA, DEPARTEMENTS, DONNEES_SITE, ESPECES, ZONE, ecrire_json, get, ouvert, pic, rampe,
+                    stations_vers_rivieres)
 
 METEO = "https://api.open-meteo.com/v1/forecast"
 HYDRO = "https://hubeau.eaufrance.fr/api/v2/hydrometrie"
+ONDE = "https://hubeau.eaufrance.fr/api/v1/ecoulement/observations"
+# Réseau ONDE : écoulement observé -> facteur (1 et 1a : normal ; 1f : faible ; 2 : sans courant visible ; 3 : à sec)
+F_ONDE = {"1": 1.0, "1a": 1.0, "1f": 0.75, "2": 0.3, "3": 0.0}
 PAS_METEO = (0.15, 0.12)
 JOURS_PASSES, JOURS_PREVUS = 30, 7
 GRADIENT = 0.0065
@@ -229,6 +234,37 @@ def lire_acces(eaux):
     return st.to_numpy(), cat.to_numpy()
 
 
+def ecoulements(eaux, jour):
+    """Dernière observation du réseau ONDE (45 derniers jours) pour les petits cours d'eau : facteur et détail."""
+    debut = (jour - dt.timedelta(days=45)).isoformat()
+    lignes = []
+    for d in DEPARTEMENTS:
+        try:
+            r = get(ONDE, {"code_departement": d, "date_observation_min": debut, "size": 5000,
+                           "fields": "code_station,libelle_station,libelle_cours_eau,date_observation,code_ecoulement,"
+                                     "libelle_ecoulement,longitude,latitude"}, timeout=120).json()
+            lignes += r.get("data") or []
+        except Exception as e:      # complément : on continue sans
+            print(f"  écoulements indisponibles ({d}) : {e}")
+    f, detail = np.ones(len(eaux)), {}
+    if not lignes:
+        return f, detail, []
+    df = pd.DataFrame(lignes).dropna(subset=["longitude", "latitude", "code_ecoulement"])
+    df = df.sort_values("date_observation").groupby("code_station").tail(1).reset_index(drop=True)
+    pts = gpd.GeoSeries(gpd.points_from_xy(df["longitude"], df["latitude"]), crs=4326).to_crs(eaux.crs)
+    k = stations_vers_rivieres(eaux, pts.x, pts.y, meme_cours=2000, proche=200)
+    for i in np.where(k >= 0)[0]:
+        code = str(df["code_ecoulement"].iloc[k[i]])
+        f[i] = F_ONDE.get(code, 1.0)
+        if f[i] < 1:
+            detail[str(int(eaux["id"].iloc[i]))] = [code, str(df["date_observation"].iloc[k[i]])[:10]]
+    obs = [{"nom": r.libelle_station, "riviere": r.libelle_cours_eau, "lat": round(float(r.latitude), 5),
+            "lon": round(float(r.longitude), 5), "code": str(r.code_ecoulement), "libelle": r.libelle_ecoulement,
+            "date": str(r.date_observation)[:10]} for r in df.itertuples()]
+    print(f"  {len(df)} stations ONDE observées depuis le {debut} ; {len(detail)} morceaux à sec ou presque")
+    return f, detail, obs
+
+
 def texte_reglementation(espece, jour):
     o1, o2, prochain = ouvert(espece, jour)
     if o1 and o2:
@@ -266,6 +302,8 @@ def main():
     f_deb[connu] = np.where(ratio[connu] > 1.8, 1 - 0.7 * rampe(ratio[connu], 1.8, 4), 1.0)
     f_deb[connu] = np.where(ratio[connu] < 0.5, 0.75, f_deb[connu])
     montee = connu & (tend >= 1.1) & (tend <= 1.8) & (np.nan_to_num(ratio) < 2)
+    print("Écoulement des petits cours d'eau (ONDE)...")
+    f_onde, assecs, obs_onde = ecoulements(eaux, aujourdhui)
 
     # Température de l'eau estimée, pour chaque eau et chaque jour (aujourd'hui = indice JOURS_PASSES)
     teau = np.zeros((len(eaux), JOURS_PREVUS + 1))
@@ -310,7 +348,7 @@ def main():
             pluie_2j = pluie[:, i - 1:i + 1].sum(axis=1)
             f_d = np.where(est_riv & (pluie_2j > 25), f_d * 0.8, f_d)
             bonus = np.where(montee & (k <= 1) & (e in AIMENT_MONTEE), 1.1, 1.0)
-            indice = np.clip(f_t * f_d * bonus * f_p * f_l, 0, 1) * permis
+            indice = np.clip(f_t * f_d * bonus * f_p * f_l, 0, 1) * permis * f_onde
             score = np.rint(p * indice).astype(int)
             jours.append(score.tolist())
             bons = p >= 400
@@ -356,6 +394,8 @@ def main():
                       "ratio": round(float(s.ratio), 2), "tendance": round(float(s.tendance), 2), "etat": etat_debit(s.ratio)}
                      for s in st.itertuples()],
         "lune": lune(aujourdhui),
+        "assecs": assecs,
+        "onde": obs_onde,
         "jours": [{"pression_hpa": round(float(np.nanmedian(pression[z_all, JOURS_PASSES + k])), 1),
                    "dp24_hpa": round(float(np.nanmedian(dp24[z_all, k])), 1),
                    "lune": lune(d)["phase"], "emoji": lune(d)["emoji"], "illumination": lune(d)["illumination"]}
