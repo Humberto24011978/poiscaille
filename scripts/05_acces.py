@@ -119,7 +119,9 @@ def classer(row):
         recip = "réciprocitaire (URNE)"
     else:
         recip = ""
-    public = ("DOMAINE PUBLIC" in texte or "FEDERAL" in texte) and not row["aappma"]
+    # Lots de domaine public ou fédéraux : gérés par la fédération elle-même (pas par une AAPPMA)
+    federation = "FEDERATION" in simple(row["aappma"])
+    public = ("DOMAINE PUBLIC" in texte or "FEDERAL" in texte) and (not row["aappma"] or federation)
     statut = "public" if public else "aappma" if (row["aappma"] or "RECIPROC" in texte or hors_urne) else ""
     return pd.Series({"cat": cat, "statut": statut, "recip": recip, "reserve": reserve,
                       "specifique": specifique, "depositaire": depositaire})
@@ -266,6 +268,8 @@ def main():
         res = {}
     for idx, info in res.items():
         for k, v in info.items():
+            if k == "statut" and out.loc[idx, "statut"] == "public":
+                continue      # une eau navigable reste du domaine public, même louée à une AAPPMA
             out.loc[idx, k] = v
     n68 = sum(1 for v in res.values() if v.get("statut"))
     print(f"  {n68} eaux rattachées à un parcours, {sum(1 for v in res.values() if v.get('reserve'))} en réserve, "

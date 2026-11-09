@@ -201,7 +201,7 @@ function htmlAcces(p) {
   const st = statutDe(p);
   if (p.rs === 1) h += `<span class="alerte">⛔ Réserve de pêche : pêche interdite</span><br>`;
   else if (p.rs === 2) h += `<span class="attention">⚠️ Réserve de pêche sur une partie du parcours : repérez les panneaux</span><br>`;
-  if (st === "p") h += `Domaine public${p.aa ? ` · AAPPMA ${echapper(p.aa)}` : ""}`;
+  if (st === "p") h += `Domaine public${p.aa ? ` · ${/f[ée]d[ée]ration/i.test(p.aa) ? "lot de la " : "AAPPMA "}${echapper(p.aa)}` : ""}`;
   else if (st === "a") h += `Lot de l'AAPPMA${p.aa ? ` <b>${echapper(p.aa)}</b>` : ""}`;
   else if (st === "x") h += `Eau privée ou payante : autorisation du propriétaire nécessaire`;
   else h += `Statut non renseigné : en général un lot d'AAPPMA ou une eau privée, à vérifier`;
