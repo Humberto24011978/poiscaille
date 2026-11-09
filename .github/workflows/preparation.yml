@@ -1,7 +1,8 @@
 name: Préparation des données
 
 # Lancée à la main (onglet Actions). Télécharge les eaux, les pêches scientifiques,
-# calcule le potentiel de chaque rivière et plan d'eau, puis enregistre le résultat.
+# les accès (domaine public, AAPPMA, réciprocités, privé), calcule le potentiel de chaque rivière
+# et plan d'eau, puis enregistre le résultat.
 on:
   workflow_dispatch:
     inputs:
@@ -9,7 +10,7 @@ on:
         description: "Étapes à lancer"
         type: choice
         default: tout
-        options: [tout, eaux, peches, potentiel]
+        options: [tout, eaux, peches, acces, potentiel]
 
 permissions:
   contents: write
@@ -35,6 +36,9 @@ jobs:
       - name: 2. Pêches scientifiques (OFB, Hub'Eau)
         if: inputs.etapes == 'tout' || inputs.etapes == 'peches'
         run: python scripts/02_peches.py
+      - name: Accès (domaine public, AAPPMA, réciprocités, réserves, privé)
+        if: inputs.etapes == 'tout' || inputs.etapes == 'eaux' || inputs.etapes == 'acces'
+        run: python scripts/05_acces.py
       - name: 3. Potentiel par espèce
         run: python scripts/03_potentiel.py
       - name: Enregistrer les données

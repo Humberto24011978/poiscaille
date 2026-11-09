@@ -30,10 +30,22 @@
   .avenir h3 { margin: 0 0 4px; font-size: 13px; text-transform: uppercase; letter-spacing: .5px; color: var(--eau); }
   .avenir .ligne { margin: 3px 0 0; font-size: 13.5px; line-height: 1.45; }
   .avenir a { color: var(--encre); text-decoration: underline; text-decoration-color: #8fb9cb; text-underline-offset: 2px; }
-  .especes { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
-  .especes button { border: 1px solid var(--ligne); background: #fff; color: var(--encre); border-radius: 999px; padding: 6px 11px; font-size: 13.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+  .especes, .acces { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .acces { margin-bottom: 4px; }
+  .especes button, .acces button { border: 1px solid var(--ligne); background: #fff; color: var(--encre); border-radius: 999px; padding: 6px 11px; font-size: 13.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+  .acces button { font-size: 12.5px; padding: 5px 10px; }
+  .acces button .nb { color: var(--gris); font-size: 11.5px; }
+  .acces button[aria-pressed="true"] .nb { color: rgba(255,255,255,.75); }
   .especes button .pt { width: 8px; height: 8px; border-radius: 50%; }
-  .especes button[aria-pressed="true"] { background: var(--nuit); color: #fff; border-color: var(--nuit); }
+  .especes button[aria-pressed="true"], .acces button[aria-pressed="true"] { background: var(--nuit); color: #fff; border-color: var(--nuit); }
+  .heures { display: flex; align-items: flex-end; gap: 1px; height: 40px; margin: 8px 0 2px; }
+  .heures span { flex: 1; min-width: 0; border-radius: 2px 2px 0 0; background: #9fb8c8; }
+  .heures span.interdit { background: repeating-linear-gradient(45deg, #d5dde1 0 3px, #f6f8f7 3px 6px); }
+  .heures-axe { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--gris); }
+  .heures-txt { font-size: 12.5px; line-height: 1.45; margin-top: 5px; color: var(--encre); }
+  .heures-txt .gris { color: var(--gris); }
+  .alerte { color: #b3261e; font-weight: 650; }
+  .attention { color: #8a5a00; }
   .bascule { display: grid; grid-template-columns: 1fr 1fr; background: #e3eaed; border-radius: 10px; padding: 3px; margin-bottom: 12px; }
   .bascule button { border: 0; background: none; padding: 7px 0; border-radius: 8px; font-size: 13.5px; cursor: pointer; color: var(--gris); }
   .bascule button[aria-pressed="true"] { background: #fff; color: var(--encre); box-shadow: 0 1px 3px rgba(0,0,0,.12); font-weight: 600; }
@@ -101,6 +113,10 @@
     <label class="titre">Poisson</label>
     <div class="especes" id="especes"></div>
 
+    <label class="titre">Eaux à afficher</label>
+    <div class="acces" id="acces" role="group" aria-label="Statut des eaux"></div>
+    <p class="petit" id="acces-aide">Statut connu pour le Rhin, les canaux et rivières navigables, les parcours de la fédération du Haut-Rhin et les lieux de pêche signalés sur OpenStreetMap. Ailleurs, voyez la carte Géopêche de votre fédération (lien dans la fiche de chaque eau).</p>
+
     <div class="regle" id="regle"></div>
 
     <div class="bascule" role="group" aria-label="Type de carte">
@@ -116,6 +132,7 @@
     <div class="etat" id="etat">
       <div class="statut"><span class="pt"></span><span>Chargement…</span></div>
       <div class="detail"></div>
+      <div id="heures-bloc"></div>
     </div>
     <div class="lune" id="lune"></div>
 
@@ -138,8 +155,10 @@
     <div class="pied">
       La carte indique des eaux favorables, jamais une certitude. Carte de pêche obligatoire. Les dates affichées suivent le cadre national :
       vérifiez toujours l'arrêté préfectoral de votre département, la catégorie de l'eau et le règlement de l'AAPPMA (parcours privés, réserves, tailles et quotas).
-      Les températures de l'eau sont des estimations.<br>
-      Données : IGN (BD TOPO, ADMIN EXPRESS), OFB et Hub'Eau (pêches scientifiques, débits), Copernicus, Open-Meteo, OpenStreetMap.
+      Les températures de l'eau sont des estimations ; la pression et la lune ont un effet discuté, d'où leur poids modeste.
+      Pêche autorisée d'une demi-heure avant le lever du soleil à une demi-heure après son coucher (carpe de nuit seulement sur les parcours désignés).<br>
+      Données : IGN (BD TOPO, ADMIN EXPRESS), OFB et Hub'Eau (pêches scientifiques, débits), Copernicus, Open-Meteo, OpenStreetMap,
+      carte des parcours de la Fédération du Haut-Rhin pour la pêche ; soleil et lune : SunCalc.
     </div>
   </div>
 </section>
@@ -147,6 +166,7 @@
 <button class="localiser" id="localiser">📍 Me localiser</button>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/suncalc@1.9.0/suncalc.js"></script>
 <script>
 const FICHES = {
   truite: { milieu: "Ruisseaux et rivières vives, eau fraîche et bien oxygénée (zone à truite des Vosges, sources de la plaine).", conseil: "Plus active entre 8 et 15 °C ; une légère montée d'eau teintée est souvent propice." },
@@ -163,6 +183,157 @@ const COULEURS = { "bon moment": "var(--bon)", "conditions moyennes": "var(--moy
 const couleurValeur = (v) => v >= 650 ? "#82204b" : v >= 400 ? "#d9452b" : v >= 200 ? "#e8892f" : v >= 80 ? "#e6c13e" : "#9fb8c8";
 const km = (d) => d < 1 ? `${Math.round(d * 1000)} m` : `${d.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} km`;
 const dateFr = (iso) => new Date(iso + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+const echapper = (t) => String(t).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const effet = (f) => Math.abs(f - 1) < 0.015 ? "effet neutre" : `${f > 1 ? "+" : "−"}${Math.round(Math.abs(f - 1) * 100)} %`;
+
+// ---- Statut des eaux (domaine public, lots d'AAPPMA, privé, non renseigné) ----
+const STATUTS = { p: "Domaine public", a: "Lots d'AAPPMA", x: "Privé", i: "Non renseigné" };
+const ORDRE_STATUTS = "paxi";
+const DEPS = ["54", "55", "57", "67", "68", "88"];
+let filtre = ORDRE_STATUTS;
+try { const f = localStorage.getItem("pc-acces"); if (f && /^[paxi]+$/.test(f)) filtre = f; } catch (e) {}
+const statutDe = (p) => p.st || "i";
+const visible = (p) => filtre.includes(statutDe(p));
+const valeursZone = (pv) => (filtre !== ORDRE_STATUTS && pv.filtres && pv.filtres[filtre]) ? pv.filtres[filtre].map((v) => v ?? 0) : pv.zone;
+
+function htmlAcces(p) {
+  let h = "";
+  const st = statutDe(p);
+  if (p.rs === 1) h += `<span class="alerte">⛔ Réserve de pêche : pêche interdite</span><br>`;
+  else if (p.rs === 2) h += `<span class="attention">⚠️ Réserve de pêche sur une partie du parcours : repérez les panneaux</span><br>`;
+  if (st === "p") h += `Domaine public${p.aa ? ` · AAPPMA ${echapper(p.aa)}` : ""}`;
+  else if (st === "a") h += `Lot de l'AAPPMA${p.aa ? ` <b>${echapper(p.aa)}</b>` : ""}`;
+  else if (st === "x") h += `Eau privée ou payante : autorisation du propriétaire nécessaire`;
+  else h += `Statut non renseigné : en général un lot d'AAPPMA ou une eau privée, à vérifier`;
+  if (p.ca) h += ` · ${p.ca === 1 ? "1re" : "2e"} catégorie`;
+  h += "<br>";
+  if (p.rc) h += `Réciprocité : ${echapper(p.rc)}<br>`;
+  if (p.ps) h += `Parcours spécifique : ${echapper(p.ps)}<br>`;
+  const liens = [];
+  if (p.rg && /^https?:\/\//.test(p.rg)) liens.push(`<a href="${echapper(p.rg)}" target="_blank" rel="noopener">Règlement</a>`);
+  if (p.d === "68") liens.push(`<a href="https://www.google.com/maps/d/viewer?mid=1XIAIW73_lXAKp7NfJY9gEgytV84scjQB" target="_blank" rel="noopener">Parcours de la fédération</a>`);
+  if (DEPS.includes(p.d)) liens.push(`<a href="https://map.geopeche.com/${p.d}" target="_blank" rel="noopener">Géopêche ${p.d}</a>`);
+  if (liens.length) h += liens.join(" · ") + "<br>";
+  return h;
+}
+
+// ---- Heures favorables : météo heure par heure (Open-Meteo), soleil et lune (SunCalc) ----
+// Facteurs volontairement modestes : ils affinent le score du jour sans le remplacer.
+const SENS_PRESSION = { truite: 1.0, ombre: 0.6, brochet: 1.0, sandre: 0.8, perche: 1.0, carpe: 0.7, blancs: 0.6, silure: 0.8 };
+const SENS_LUNE = { truite: 0.6, ombre: 0.5, brochet: 0.6, sandre: 0.8, perche: 0.6, carpe: 1.0, blancs: 0.5, silure: 1.0 };
+// Lumière : [nuit, aube ou crépuscule, plein jour]
+const LUMIERE = { truite: [1, 1.15, 0.95], ombre: [1, 1, 1.05], brochet: [0.8, 1.12, 1], sandre: [1.15, 1.25, 0.8],
+  perche: [0.6, 1.05, 1.05], carpe: [1.1, 1.15, 0.9], blancs: [0.8, 1.1, 1], silure: [1.25, 1.15, 0.8] };
+// Goût pour un ciel couvert en plein jour (poissons qui fuient la lumière vive)
+const OMBRE_NUAGES = { truite: 0.6, ombre: 0.2, brochet: 0.4, sandre: 1, perche: 0.2, carpe: 0.3, blancs: 0.3, silure: 0.6 };
+const interp = (x, xs, ys) => {
+  if (x <= xs[0]) return ys[0];
+  for (let i = 1; i < xs.length; i++) if (x <= xs[i]) return ys[i - 1] + (ys[i] - ys[i - 1]) * (x - xs[i - 1]) / (xs[i] - xs[i - 1]);
+  return ys[ys.length - 1];
+};
+const HEURE_PARIS = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Paris", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+const partiesParis = (d) => Object.fromEntries(HEURE_PARIS.formatToParts(d).map((x) => [x.type, x.value]));
+const heureTxt = (d) => { const p = partiesParis(d); return `${+p.hour} h ${p.minute}`; };
+const meteoHeures = {};
+
+function chargerMeteoHeures(lat, lng) {
+  const cle = lat.toFixed(2) + "," + lng.toFixed(2);
+  if (!meteoHeures[cle]) {
+    meteoHeures[cle] = fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(3)}&longitude=${lng.toFixed(3)}` +
+      `&hourly=temperature_2m,pressure_msl,cloud_cover,wind_speed_10m,precipitation&past_days=1&forecast_days=8&timeformat=unixtime&timezone=Europe%2FParis`)
+      .then((r) => r.ok ? r.json() : Promise.reject(r.status))
+      .catch(() => { delete meteoHeures[cle]; return null; });
+  }
+  return meteoHeures[cle];
+}
+
+// Périodes solunaires : passages de la lune au méridien (majeures) et lever ou coucher (mineures)
+function solunaire(midi, lat, lng) {
+  const debut = midi.getTime() - 12 * 3600e3, pas = 600e3, alt = [];
+  for (let k = 0; k <= 144; k++) alt.push(SunCalc.getMoonPosition(new Date(debut + k * pas), lat, lng).altitude);
+  const majeures = [], mineures = [];
+  for (let k = 1; k < 144; k++) {
+    const t = new Date(debut + k * pas);
+    if ((alt[k] > alt[k - 1] && alt[k] >= alt[k + 1]) || (alt[k] < alt[k - 1] && alt[k] <= alt[k + 1])) majeures.push(t);
+    if ((alt[k - 1] < 0) !== (alt[k] < 0)) mineures.push(t);
+  }
+  return { majeures, mineures };
+}
+
+function analyserHeures(m, iso, lat, lng, esp, props) {
+  if (!m || !m.hourly || typeof SunCalc === "undefined") return null;
+  const H = m.hourly, idx = [];
+  H.time.forEach((t, i) => { const p = partiesParis(new Date(t * 1000)); if (`${p.year}-${p.month}-${p.day}` === iso) idx.push([i, +p.hour]); });
+  if (idx.length < 20) return null;
+  const midi = new Date(H.time[idx.find(([, h]) => h === 12)?.[0] ?? idx[12][0]] * 1000);
+  const soleil = SunCalc.getTimes(midi, lat, lng);
+  const debutLegal = new Date(soleil.sunrise.getTime() - 1800e3), finLegal = new Date(soleil.sunset.getTime() + 1800e3);
+  const lune = solunaire(midi, lat, lng);
+  const temps = idx.map(([i]) => H.temperature_2m[i]).filter((v) => v != null);
+  const tmin = Math.min(...temps), tmax = Math.max(...temps), tmoy = temps.reduce((a, b) => a + b, 0) / temps.length;
+  const nuitPermise = esp === "carpe" && props && /nuit/i.test(props.ps || "");
+  const heures = idx.map(([i, h]) => {
+    const t = new Date((H.time[i] + 1800) * 1000), fac = [];
+    const alt = SunCalc.getPosition(t, lat, lng).altitude * 180 / Math.PI;
+    const phase = alt < -6 ? 0 : alt < 8 ? 1 : 2;
+    fac.push([LUMIERE[esp][phase], ["nuit", t < midi ? "aube" : "crépuscule", "plein jour"][phase]]);
+    const nu = H.cloud_cover[i] ?? 50;
+    if (phase === 2) fac.push([1 + 0.16 * OMBRE_NUAGES[esp] * (nu / 100 - 0.5), nu >= 60 ? `ciel couvert (${nu} %)` : nu <= 30 ? `ciel dégagé (${nu} %)` : `nuages ${nu} %`]);
+    const T = H.temperature_2m[i];
+    if (T != null) {
+      const n = (T - tmin) / Math.max(tmax - tmin, 1);
+      if (tmoy < 10) fac.push([0.88 + 0.24 * n, `${n >= 0.5 ? "heure la plus douce" : "heure froide"} (${Math.round(T)} °C)`]);
+      else if (tmax > 26) fac.push([1.1 - 0.25 * n, `${n >= 0.5 ? "heure chaude" : "heure fraîche"} (${Math.round(T)} °C)`]);
+    }
+    const w = H.wind_speed_10m[i] ?? 10;
+    fac.push([interp(w, [0, 5, 15, 25, 35, 50], [0.96, 1.02, 1.05, 1.0, 0.85, 0.65]), `vent ${Math.round(w)} km/h`]);
+    const r = H.precipitation[i] ?? 0;
+    if (r >= 0.2) fac.push([r < 2 ? (esp === "truite" || esp === "blancs" ? 1.06 : 1.02) : r < 5 ? 0.9 : 0.75, `pluie ${r.toLocaleString("fr-FR")} mm`]);
+    const p0 = H.pressure_msl[i], p3 = i >= 3 ? H.pressure_msl[i - 3] : null;
+    if (p0 != null && p3 != null) {
+      const dp = p0 - p3;
+      fac.push([1 + SENS_PRESSION[esp] * (interp(dp, [-4, -2, -0.7, 0, 1, 2.5, 4], [0.95, 1.07, 1.04, 1, 0.98, 0.93, 0.9]) - 1),
+        `pression ${dp > 0 ? "+" : ""}${dp.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} hPa en 3 h`]);
+    }
+    const dMaj = Math.min(99, ...lune.majeures.map((x) => Math.abs(x - t) / 3600e3));
+    const dMin = Math.min(99, ...lune.mineures.map((x) => Math.abs(x - t) / 3600e3));
+    if (dMaj <= 1) fac.push([1 + 0.08 * SENS_LUNE[esp], "période solunaire majeure"]);
+    else if (dMin <= 0.5) fac.push([1 + 0.04 * SENS_LUNE[esp], "période solunaire mineure"]);
+    const legal = (t >= debutLegal && t <= finLegal) || nuitPermise;
+    return { h, legal, f: fac.reduce((a, [v]) => a * v, 1), fac };
+  });
+  // Meilleurs créneaux : heures autorisées proches du maximum, regroupées
+  const ok = heures.filter((x) => x.legal);
+  const fmax = Math.max(...ok.map((x) => x.f)), groupes = [];
+  for (const x of heures) {
+    if (!x.legal || x.f < fmax * 0.93) continue;
+    const g = groupes[groupes.length - 1];
+    if (g && g.fin === x.h) { g.fin = x.h + 1; g.max = Math.max(g.max, x.f); } else groupes.push({ debut: x.h, fin: x.h + 1, max: x.f });
+  }
+  const creneaux = groupes.sort((a, b) => b.max - a.max).slice(0, 2).sort((a, b) => a.debut - b.debut);
+  const meilleure = ok.reduce((a, b) => (b.f > a.f ? b : a), ok[0]);
+  return { heures, creneaux, meilleure, debutLegal, finLegal, nuitPermise };
+}
+
+function htmlHeures(a, score, ou) {
+  if (!a) return `<div class="heures-txt gris">Prévisions heure par heure indisponibles pour ce jour.</div>`;
+  const fs = a.heures.map((x) => x.f), fmin = Math.min(...fs), fmax = Math.max(...fs);
+  const barres = a.heures.map((x) => {
+    const haut = 15 + 85 * (x.f - fmin) / Math.max(fmax - fmin, 0.01), s = Math.min(1000, Math.round(score * x.f));
+    return `<span class="${x.legal ? "" : "interdit"}" style="height:${haut.toFixed(0)}%;${x.legal ? `background:${couleurValeur(s)}` : ""}" title="${x.h} h : ${x.legal ? s + "/1000" : "pêche interdite"}"></span>`;
+  }).join("");
+  const borne = (h, limite, avant) => {
+    const p = partiesParis(limite), hl = +p.hour + p.minute / 60;
+    return (avant ? h < hl : h > hl) ? heureTxt(limite) : `${h} h`;
+  };
+  const plages = a.creneaux.map((c) => `${a.nuitPermise ? c.debut + " h" : borne(c.debut, a.debutLegal, true)} – ${a.nuitPermise ? c.fin + " h" : borne(c.fin, a.finLegal, false)}`).join(" et ");
+  const facteurs = a.meilleure.fac.filter(([v]) => Math.abs(v - 1) >= 0.015).map(([v, t]) => `${t} (${effet(v)})`).join(" · ");
+  return `<div class="heures" aria-hidden="true">${barres}</div>` +
+    `<div class="heures-axe"><span>0 h</span><span>6 h</span><span>12 h</span><span>18 h</span><span>24 h</span></div>` +
+    `<div class="heures-txt"><b>Meilleures heures${ou ? " " + ou : ""} : ${plages}</b><br>` +
+    `<span class="gris">À ${a.meilleure.h} h : ${facteurs || "conditions neutres"}. Pêche autorisée de ${heureTxt(a.debutLegal)} à ${heureTxt(a.finLegal)}` +
+    `${a.nuitPermise ? " (et la nuit sur ce parcours carpe)" : ""} ; hachures : heures interdites.</span></div>`;
+}
 
 const carte = L.map("carte", { zoomControl: false, preferCanvas: true }).setView([48.45, 6.6], 8);
 L.control.zoom({ position: "topright" }).addTo(carte);
@@ -200,34 +371,65 @@ function style(f, s) {
   return { color: s >= 80 ? col : "#7d9aab", weight: 1, fillColor: col, fillOpacity: s >= 80 ? 0.6 : 0.25 };
 }
 
-let scores = [];
+let scores = [], coucheFiltre = null;
 async function dessiner() {
   scores = await scoresActuels();
-  if (!couche) {
-    couche = L.geoJSON(eaux, { renderer: rendu, style: (f) => style(f, 0) }).addTo(carte);
+  if (!couche || coucheFiltre !== filtre) {
+    if (couche) carte.removeLayer(couche);
+    couche = L.geoJSON(eaux, { renderer: rendu, filter: (f) => visible(f.properties), style: (f) => style(f, 0) }).addTo(carte);
     couche.on("click", (ev) => ouvrirPopup(ev.layer, ev.latlng));
+    coucheFiltre = filtre;
   }
   couche.eachLayer((l) => l.setStyle(style(l.feature, scores[l.feature.properties.i] || 0)));
 }
 
+let popupJeton = 0;
+const ATTENTE = `<div class="heures-txt gris">Calcul des meilleures heures…</div>`;
 function ouvrirPopup(layer, latlng) {
   const p = layer.feature.properties, s = scores[p.i] || 0, e = info.especes[espece];
-  const vues = (p.v || []).map((x) => { const [k, a] = x.split(":"); return `${info.especes[k] ? info.especes[k].nom.toLowerCase() : k} (${a})`; });
-  let html = `<b>${p.n || TYPES[p.t]}</b>${p.n ? ` · ${TYPES[p.t].toLowerCase()}` : ""}<br>`;
+  const k = mode === "jour" ? jourSel : 0;
+  const vues = (p.v || []).map((x) => { const [c, a] = x.split(":"); return `${info.especes[c] ? info.especes[c].nom.toLowerCase() : c} (${a})`; });
+  let html = `<b>${echapper(p.n || TYPES[p.t])}</b>${p.n ? ` · ${TYPES[p.t].toLowerCase()}` : ""}<br>`;
   html += `${e.nom} : <b>${s}/1000</b> ${mode === "jour" ? (jourSel === 0 ? "aujourd'hui" : "le " + dateFr(info.dates[jourSel])) : "(potentiel)"}<br>`;
   html += `Potentiel toute saison : ${p.p[idxEsp()]}/1000<br>`;
   if (p.s) html += `Surface : ${p.s.toLocaleString("fr-FR")} ha · `;
   if (p.a) html += `altitude ${p.a} m<br>`;
-  if (p.f) html += `${p.f === 2 ? "Lieu de pêche d'une association (AAPPMA)" : "Lieu de pêche signalé"} selon OpenStreetMap<br>`;
+  html += htmlAcces(p);
+  if (p.f && !p.aa) html += `${p.f === 2 ? "Lieu de pêche d'une association (AAPPMA)" : "Lieu de pêche signalé"} selon OpenStreetMap<br>`;
   if (vues.length) html += `Vu lors des pêches scientifiques : ${vues.join(", ")}<br>`;
+  const peutPecher = p.rs !== 1 && info.previsions[espece].statut[k] !== "pêche fermée" && (mode !== "jour" || s > 0);
+  const jeton = ++popupJeton;
+  if (peutPecher) html += ATTENTE;
   html += `<a href="https://www.google.com/maps/dir/?api=1&destination=${latlng.lat.toFixed(5)},${latlng.lng.toFixed(5)}" target="_blank" rel="noopener">Itinéraire</a>`;
-  L.popup().setLatLng(latlng).setContent(html).openOn(carte);
+  const popup = L.popup({ maxWidth: 320 }).setLatLng(latlng).setContent(html).openOn(carte);
+  if (!peutPecher) return;
+  Promise.all([chargerMeteoHeures(latlng.lat, latlng.lng), mode === "jour" ? null : chargerJour(espece)]).then(([m, dj]) => {
+    if (jeton !== popupJeton || !popup.isOpen()) return;
+    const base = mode === "jour" ? s : ((dj && dj.j[0] && dj.j[0][p.i]) || 0);
+    const a = analyserHeures(m, info.dates[k], latlng.lat, latlng.lng, espece, p);
+    popup.setContent(html.replace(ATTENTE, `<div>${htmlHeures(a, base, mode === "jour" ? "" : "aujourd'hui")}</div>`));
+  });
+}
+
+function afficherAcces() {
+  const comptes = { p: 0, a: 0, x: 0, i: 0 };
+  for (const f of eaux.features) comptes[statutDe(f.properties)]++;
+  const zone = document.getElementById("acces");
+  zone.innerHTML = [...ORDRE_STATUTS].map((c) =>
+    `<button data-s="${c}" aria-pressed="${filtre.includes(c)}">${STATUTS[c]} <span class="nb">${comptes[c].toLocaleString("fr-FR")}</span></button>`).join("");
+  zone.querySelectorAll("button").forEach((b) => b.onclick = () => {
+    const c = b.dataset.s, nouveau = [...ORDRE_STATUTS].filter((x) => (x === c) !== filtre.includes(x)).join("");
+    if (!nouveau) return;   // au moins une catégorie
+    filtre = nouveau;
+    try { localStorage.setItem("pc-acces", filtre); } catch (e) {}
+    afficher();
+  });
 }
 
 function afficherAvenir() {
   const zone = document.getElementById("avenir"), maintenant = [], avenir = [];
   for (const [cle, p] of Object.entries(info.previsions)) {
-    const v = p.zone, max = Math.max(...v.slice(1)), k = v.indexOf(max, 1), nom = info.especes[cle].nom;
+    const v = valeursZone(p), max = Math.max(...v.slice(1)), k = v.indexOf(max, 1), nom = info.especes[cle].nom;
     if (p.statut[0] === "pêche fermée") continue;
     if (v[0] >= 300) maintenant.push({ cle, nom, force: v[0] });
     else if (max >= 300 && max - v[0] >= 150) avenir.push({ cle, k, force: max,
@@ -235,7 +437,8 @@ function afficherAvenir() {
   }
   maintenant.sort((a, b) => b.force - a.force); avenir.sort((a, b) => b.force - a.force);
   const lien = (c, k, t) => `<a href="#" data-e="${c}" data-k="${k}">${t}</a>`;
-  zone.innerHTML = `<h3>${info.zone.nom} (${info.zone.rayon_km} km)</h3>` +
+  const quelles = filtre === ORDRE_STATUTS ? "" : ` · ${[...filtre].map((c) => STATUTS[c].toLowerCase()).join(", ")}`;
+  zone.innerHTML = `<h3>${info.zone.nom} (${info.zone.rayon_km} km)${quelles}</h3>` +
     `<p class="ligne"><b>En ce moment</b> : ${maintenant.length ? maintenant.map((x) => lien(x.cle, 0, x.nom.toLowerCase())).join(", ") : "rien de très favorable"}.</p>` +
     (avenir.length ? avenir.slice(0, 4).map((x) => `<p class="ligne">${lien(x.cle, x.k, x.txt)}</p>`).join("") : `<p class="ligne">Pas d'amélioration nette annoncée dans les 7 jours.</p>`);
   zone.querySelectorAll("a").forEach((a) => a.onclick = (ev) => { ev.preventDefault(); espece = a.dataset.e; mode = "jour"; jourSel = +a.dataset.k; enregistrer(); afficher(); });
@@ -246,8 +449,9 @@ function afficherJours() {
   const bloc = document.getElementById("bloc-jours"), p = info.previsions[espece];
   bloc.hidden = mode !== "jour";
   if (mode !== "jour") return;
+  const zv = valeursZone(p);
   document.getElementById("jours").innerHTML = info.dates.map((d, k) => {
-    const v = p.zone[k], lib = k === 0 ? "Auj." : k === 1 ? "Dem." : new Date(d + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "short" }).replace(".", "") + " " + +d.slice(8);
+    const v = zv[k], lib = k === 0 ? "Auj." : k === 1 ? "Dem." : new Date(d + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "short" }).replace(".", "") + " " + +d.slice(8);
     return `<button data-k="${k}" aria-pressed="${k === jourSel}" class="${k >= 4 ? "tendance" : ""}" title="${dateFr(d)} : ${v}/1000"><span>${lib}</span>` +
       `<span class="colonne"><span style="height:${Math.max(4, v / 10)}%;background:${couleurValeur(v)}"></span></span><span>${v}</span></button>`;
   }).join("");
@@ -256,19 +460,37 @@ function afficherJours() {
 }
 
 function afficherEtat() {
-  const e = info.especes[espece], m = info.meteo, etat = document.getElementById("etat");
-  const st = mode === "jour" ? info.previsions[espece].statut[jourSel] : null;
+  const e = info.especes[espece], m = info.meteo, etat = document.getElementById("etat"), pv = info.previsions[espece];
+  const st = mode === "jour" ? pv.statut[jourSel] : null;
   if (mode === "potentiel") {
     etat.querySelector(".statut").innerHTML = `<span class="pt" style="background:var(--eau)"></span><span>Potentiel toute saison</span>`;
     etat.querySelector(".detail").textContent = "Eaux où l'espèce a le plus de chances de vivre, d'après les pêches scientifiques, la taille et la pente des rivières et le type de plan d'eau, sans tenir compte de la météo.";
+    document.getElementById("heures-bloc").innerHTML = "";
     return;
   }
   etat.querySelector(".statut").innerHTML = `<span class="pt" style="background:${COULEURS[st]}"></span><span>${st.charAt(0).toUpperCase() + st.slice(1)}</span>`;
   let d = jourSel === 0 ? `Mise à jour ${dateFr(info.date)}. ` : `Prévision pour ${dateFr(info.dates[jourSel])}${jourSel >= 4 ? " (tendance)" : ""}. `;
-  d += `Air sur 7 jours : ${m.air_7j} °C ; eau estimée : ${m.eau_rivieres ?? "?"} °C en rivière, ${m.eau_plans ?? "?"} °C en plan d'eau. `;
-  d += `Pluie : ${m.pluie_7j_mm} mm ces 7 derniers jours, ${m.pluie_prevue_7j_mm} mm prévus. `;
-  if (m.pression_3j_hpa != null) d += `Pression ${m.pression_3j_hpa < -3 ? "en baisse" : m.pression_3j_hpa > 3 ? "en hausse" : "stable"} (${m.pression_3j_hpa > 0 ? "+" : ""}${m.pression_3j_hpa} hPa en 3 jours).`;
+  const fr = (v) => v == null ? "?" : v.toLocaleString("fr-FR");
+  d += `Air sur 7 jours : ${fr(m.air_7j)} °C ; eau estimée : ${fr(m.eau_rivieres)} °C en rivière, ${fr(m.eau_plans)} °C en plan d'eau. `;
+  d += `Pluie : ${fr(m.pluie_7j_mm)} mm ces 7 derniers jours, ${fr(m.pluie_prevue_7j_mm)} mm prévus. `;
+  const j = info.jours && info.jours[jourSel];
+  if (j && pv.f_pression) {
+    d += `Pression ${j.pression_hpa.toLocaleString("fr-FR")} hPa, ${j.dp24_hpa > 0 ? "+" : ""}${j.dp24_hpa.toLocaleString("fr-FR")} hPa en 24 h (${effet(pv.f_pression[jourSel])}). `;
+    d += `Lune : ${j.lune.toLowerCase()} (${effet(pv.f_lune[jourSel])}).`;
+  } else if (m.pression_3j_hpa != null) d += `Pression ${m.pression_3j_hpa < -3 ? "en baisse" : m.pression_3j_hpa > 3 ? "en hausse" : "stable"} (${m.pression_3j_hpa > 0 ? "+" : ""}${m.pression_3j_hpa} hPa en 3 jours).`;
   etat.querySelector(".detail").textContent = d;
+  afficherHeures();
+}
+
+let heuresJeton = 0;
+async function afficherHeures() {
+  const bloc = document.getElementById("heures-bloc"), pv = info.previsions[espece], jeton = ++heuresJeton;
+  if (mode !== "jour" || pv.statut[jourSel] === "pêche fermée") { bloc.innerHTML = ""; return; }
+  const lieu = centre || { lat: info.zone.lat, lng: info.zone.lon }, ou = centre ? "autour de vous" : info.zone.nom;
+  if (!bloc.innerHTML) bloc.innerHTML = `<div class="heures-txt gris">Calcul des meilleures heures…</div>`;
+  const m = await chargerMeteoHeures(lieu.lat, lieu.lng);
+  if (jeton !== heuresJeton) return;
+  bloc.innerHTML = htmlHeures(analyserHeures(m, info.dates[jourSel], lieu.lat, lieu.lng, espece, null), valeursZone(pv)[jourSel], ou);
 }
 
 async function afficher() {
@@ -281,9 +503,9 @@ async function afficher() {
   const regle = document.getElementById("regle"), ferme = e.reglementation.startsWith("fermée");
   regle.className = "regle" + (ferme ? " ferme" : "");
   regle.innerHTML = `<b>Pêche ${e.reglementation}</b> (cadre national). Vérifiez l'arrêté de votre département et le règlement de l'AAPPMA.`;
-  afficherAvenir(); afficherJours(); afficherEtat();
-  const l = info.lune;
-  document.getElementById("lune").textContent = l ? `${l.emoji} ${l.phase} (${l.illumination} %), pour information.` : "";
+  afficherAcces(); afficherAvenir(); afficherJours(); afficherEtat();
+  const l = info.jours && mode === "jour" ? info.jours[jourSel] : info.lune;
+  document.getElementById("lune").textContent = l ? `${l.emoji} ${l.lune || l.phase} (${l.illumination} %) : prise en compte, avec un poids modeste.` : "";
   const f = FICHES[espece];
   document.getElementById("fiche").innerHTML = `<h2>${e.nom}</h2><dl><dt>Milieu</dt><dd>${f.milieu}</dd><dt>Conseil</dt><dd>${f.conseil}</dd></dl>`;
   await dessiner();
@@ -339,6 +561,7 @@ function placerCentre(latlng, ajuster) {
     marqueurMoi = L.marker(latlng, { draggable: true, zIndexOffset: 1000, icon: L.divIcon({ className: "moi", html: "<span></span>", iconSize: [24, 24] }) }).addTo(carte);
     marqueurMoi.on("dragend", () => placerCentre(marqueurMoi.getLatLng(), false));
   } else marqueurMoi.setLatLng(latlng);
+  afficherHeures();
   return chercherAutour(ajuster);
 }
 
@@ -351,7 +574,7 @@ async function chercherAutour(ajuster) {
   const s = await scoresActuels(), cand = [];
   eaux.features.forEach((f, i) => {
     const v = s[f.properties.i] || 0;
-    if (v < 80) return;
+    if (v < 80 || !visible(f.properties) || f.properties.rs === 1) return;
     const d = distanceKm(centre, centres[i]);
     if (d <= rayon) cand.push({ f, c: centres[i], v, d });
   });

@@ -4,7 +4,10 @@ Sources gratuites, sans clé :
 - météo : Open-Meteo (30 jours passés + 7 jours de prévision) ;
 - débits en temps réel : Hub'Eau hydrométrie (stations Vigicrues et DREAL).
 
-Indice d'activité (0 à 1) = température de l'eau estimée × état du débit × réglementation.
+Indice d'activité (0 à 1) = température de l'eau estimée × état du débit × pression × lune × réglementation.
+La pression (baisse lente avant une perturbation, forte hausse après un front) et la lune (nouvelle et pleine lune)
+ont un effet discuté : leur poids est volontairement modeste (quelques %).
+La réglementation tient compte de la catégorie de l'eau quand elle est connue (étape 5).
 Score du jour (0 à 1000) = potentiel × indice.
 
 Résultats : site/donnees/jour_<espece>.json et site/donnees/info.json
@@ -36,6 +39,16 @@ TEMP_EAU = {
 }
 # Espèces qui profitent d'une légère montée des eaux (eau teintée), selon l'expérience des pêcheurs
 AIMENT_MONTEE = {"truite", "brochet", "perche", "silure", "blancs"}
+# Variation de pression sur 24 h (hPa) -> facteur : baisse lente = un peu mieux, forte hausse ou chute brutale = moins bien
+PRESSION_DP = [-12, -8, -4, -1.5, 0, 2, 5, 10]
+PRESSION_F = [0.88, 0.95, 1.08, 1.06, 1.0, 0.98, 0.9, 0.86]
+SENS_PRESSION = {"truite": 1.0, "ombre": 0.6, "brochet": 1.0, "sandre": 0.8, "perche": 1.0, "carpe": 0.7,
+                 "blancs": 0.6, "silure": 0.8}
+# Lune : jusqu'à ±5 % (nouvelle et pleine lune un peu meilleures que les quartiers, théorie solunaire)
+SENS_LUNE = {"truite": 0.6, "ombre": 0.5, "brochet": 0.6, "sandre": 0.8, "perche": 0.6, "carpe": 1.0,
+             "blancs": 0.5, "silure": 1.0}
+STATUTS = {"public": "p", "aappma": "a", "prive": "x"}       # autre : « i » (non renseigné)
+ORDRE_STATUTS = "paxi"
 # Température de l'eau : moyenne de l'air sur n jours, pente, décalage (approximation)
 INERTIE = {"riviere": (5, 0.75, 2.5), "canal": (10, 0.8, 2.5), "rhin": (10, 0.8, 3.0), "etang": (10, 0.85, 2.0),
            "port": (10, 0.85, 2.5), "lac": (20, 0.85, 2.0), "graviere": (20, 0.85, 2.0), "retenue": (20, 0.85, 2.0)}
@@ -184,6 +197,38 @@ def lune(jour):
             "prochaine_pleine": loc(ephem.next_full_moon(d))}
 
 
+def age_lune(jour):
+    """Âge de la lune à midi, en fraction du cycle (0 : nouvelle lune, 0,5 : pleine lune)."""
+    d = ephem.Date(dt.datetime(jour.year, jour.month, jour.day, 11))
+    avant, apres = ephem.previous_new_moon(d), ephem.next_new_moon(d)
+    return float((d - avant) / (apres - avant))
+
+
+def facteur_pression(dp24, sens):
+    f = np.interp(np.nan_to_num(np.asarray(dp24, float), nan=0.0), PRESSION_DP, PRESSION_F)
+    return 1 + sens * (f - 1)
+
+
+def facteur_lune(age, sens):
+    return 1 + sens * 0.05 * np.cos(4 * np.pi * age)
+
+
+def sous_ensembles():
+    """Toutes les combinaisons de statuts (« p », « pa », « paxi »...) pour les filtres du site."""
+    return ["".join(c for j, c in enumerate(ORDRE_STATUTS) if m >> j & 1) for m in range(1, 2 ** len(ORDRE_STATUTS))]
+
+
+def lire_acces(eaux):
+    chemin = DATA / "acces.csv"
+    st = pd.Series("i", index=eaux.index)
+    cat = pd.Series(0, index=eaux.index)
+    if chemin.exists():
+        a = pd.read_csv(chemin, dtype={"dep": str}, keep_default_na=False).drop_duplicates("id").set_index("id")
+        st = eaux["id"].map(a["statut"].map(STATUTS)).fillna("i")
+        cat = pd.to_numeric(eaux["id"].map(a["cat"]), errors="coerce").fillna(0).astype(int)
+    return st.to_numpy(), cat.to_numpy()
+
+
 def texte_reglementation(espece, jour):
     o1, o2, prochain = ouvert(espece, jour)
     if o1 and o2:
@@ -237,26 +282,47 @@ def main():
     cl = eaux.geometry.representative_point()
     dans_zone = np.hypot(cl.x - pot_zone[0], cl.y - pot_zone[1]).to_numpy() <= ZONE["rayon_km"] * 1000
 
+    # Pression : variation sur 24 h de la moyenne journalière ; lune : âge du cycle
+    pression = interpoler(m["pressure_msl_mean"], lons, lats, lon, lat)
+    dp24 = np.stack([pression[:, JOURS_PASSES + k] - pression[:, JOURS_PASSES + k - 1] for k in range(len(dates))], axis=1)
+    ages = [age_lune(j) for j in dates]
+    statut_eau, cat_eau = lire_acces(eaux)
+    filtres = {cle: np.isin(statut_eau, list(cle)) for cle in sous_ensembles()}
+    print("Statuts :", {c: int((statut_eau == c).sum()) for c in ORDRE_STATUTS})
+
     DONNEES_SITE.mkdir(parents=True, exist_ok=True)
     previsions, reglementation, statuts = {}, {}, {}
     for e in ESP:
         p = pot[e].to_numpy(float)
-        jours, prev = [], {"zone": [], "region": [], "statut": []}
+        jours, prev = [], {"zone": [], "region": [], "statut": [], "filtres": {c: [] for c in filtres},
+                           "f_pression": [], "f_lune": []}
         for k, jour in enumerate(dates):
             texte, legal = texte_reglementation(e, jour)
+            o1, o2, _ = ouvert(e, jour)
+            # Catégorie connue : sa propre période d'ouverture ; sinon ouverte si l'une des deux l'est
+            permis = np.where(cat_eau == 1, o1, np.where(cat_eau == 2, o2, o1 or o2)).astype(float)
             f_t = pic(teau[:, k], *TEMP_EAU[e])
+            f_p = facteur_pression(dp24[:, k], SENS_PRESSION[e])
+            f_l = float(facteur_lune(ages[k], SENS_LUNE[e]))
             # Débit : connu aujourd'hui, revient peu à peu à la normale dans les prévisions ; grosse pluie prévue = risque de crue
             f_d = 1 - (1 - f_deb) * max(0.0, 1 - k / 4)
             i = JOURS_PASSES + k
             pluie_2j = pluie[:, i - 1:i + 1].sum(axis=1)
             f_d = np.where(est_riv & (pluie_2j > 25), f_d * 0.8, f_d)
             bonus = np.where(montee & (k <= 1) & (e in AIMENT_MONTEE), 1.1, 1.0)
-            indice = np.clip(f_t * f_d * bonus, 0, 1) * (1.0 if legal else 0.0)
+            indice = np.clip(f_t * f_d * bonus * f_p * f_l, 0, 1) * permis
             score = np.rint(p * indice).astype(int)
             jours.append(score.tolist())
             bons = p >= 400
             for nom_zone, sel in (("zone", bons & dans_zone), ("region", bons)):
                 prev[nom_zone].append(int(np.percentile(score[sel], 90)) if sel.sum() >= 10 else 0)
+            for cle, sel in filtres.items():
+                sel = sel & bons & dans_zone
+                n_sel = int(sel.sum())
+                prev["filtres"][cle].append(None if n_sel == 0 else int(np.percentile(score[sel], 90 if n_sel >= 10 else 75)))
+            z = dans_zone if dans_zone.any() else np.ones(len(eaux), bool)
+            prev["f_pression"].append(round(float(np.nanmedian(f_p[z])), 3))
+            prev["f_lune"].append(round(f_l, 3))
             v = float(np.percentile(indice[bons], 90)) if bons.sum() >= 10 else 0
             prev["statut"].append("pêche fermée" if not legal else
                                   "bon moment" if v >= 0.55 else "conditions moyennes" if v >= 0.3 else "peu favorable")
@@ -268,10 +334,10 @@ def main():
         print(f"{ESPECES[e]['nom']} : {prev['statut'][0]} ; {ZONE['nom']} {prev['zone']} ; réglementation : {reglementation[e]}")
 
     a = JOURS_PASSES
-    pression = interpoler(m["pressure_msl_mean"], lons, lats, lon, lat)
     with np.errstate(invalid="ignore"):
         dp = np.nanmedian(pression[dans_zone, a] - pression[dans_zone, a - 3]) if dans_zone.any() else np.nan
     riv_z, pl_z = dans_zone & est_riv, dans_zone & ~est_riv
+    z_all = dans_zone if dans_zone.any() else np.ones(len(eaux), bool)
     ecrire_json(DONNEES_SITE / "info.json", {
         "date": aujourdhui.isoformat(),
         "dates": [d.isoformat() for d in dates],
@@ -290,6 +356,10 @@ def main():
                       "ratio": round(float(s.ratio), 2), "tendance": round(float(s.tendance), 2), "etat": etat_debit(s.ratio)}
                      for s in st.itertuples()],
         "lune": lune(aujourdhui),
+        "jours": [{"pression_hpa": round(float(np.nanmedian(pression[z_all, JOURS_PASSES + k])), 1),
+                   "dp24_hpa": round(float(np.nanmedian(dp24[z_all, k])), 1),
+                   "lune": lune(d)["phase"], "emoji": lune(d)["emoji"], "illumination": lune(d)["illumination"]}
+                  for k, d in enumerate(dates)],
     })
     print("Conditions du jour et prévisions prêtes.")
 

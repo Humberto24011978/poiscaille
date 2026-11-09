@@ -5,6 +5,8 @@
   (zone à truite en tête de bassin, zone à ombre, à barbeau, puis à brème en plaine).
 - Plans d'eau : règles selon le type (étang, gravière, lac de montagne, grande retenue), la surface et l'altitude.
 - Un lieu de pêche signalé (OpenStreetMap), surtout d'une association, donne un petit bonus.
+- Accès (étape 5, si elle a tourné) : statut (domaine public, lot d'AAPPMA, privé), association, catégorie,
+  réciprocité, réserves de pêche (score nul : pêche interdite) et parcours spécifiques.
 
 Résultats :
 - data/potentiel.csv : scores par objet et par espèce
@@ -94,6 +96,47 @@ def arrondir(c):
     return [arrondir(x) for x in c]
 
 
+STATUTS = {"public": "p", "aappma": "a", "prive": "x"}
+
+
+def lire_acces(eaux):
+    """Table d'accès alignée sur les eaux (vide si l'étape 5 n'a pas encore tourné)."""
+    vide = pd.DataFrame({"id": eaux["id"], "dep": "", "statut": "inconnu", "cat": 0, "aappma": "", "recip": "",
+                         "reserve": 0, "specifique": "", "reglement": ""}, index=eaux.index)
+    chemin = DATA / "acces.csv"
+    if not chemin.exists():
+        print("Pas de données d'accès (étape 5) : statuts inconnus")
+        return vide
+    a = pd.read_csv(chemin, dtype={"dep": str}, keep_default_na=False)
+    a = a.drop_duplicates("id").set_index("id")
+    res = vide.copy()
+    for c in vide.columns:
+        if c != "id" and c in a.columns:
+            v = res["id"].map(a[c])
+            res[c] = v.where(v.notna(), vide[c])
+    res["cat"] = pd.to_numeric(res["cat"], errors="coerce").fillna(0).astype(int)
+    res["reserve"] = pd.to_numeric(res["reserve"], errors="coerce").fillna(0).astype(int)
+    print("Accès :", res["statut"].value_counts().to_dict())
+    return res
+
+
+def proprietes_acces(a):
+    """Propriétés courtes pour le site : statut, département, association, catégorie, réciprocité, réserve..."""
+    p = {}
+    if a["statut"] in STATUTS:
+        p["st"] = STATUTS[a["statut"]]
+    if a["dep"]:
+        p["d"] = str(a["dep"]).zfill(2)
+    for cle, col in (("aa", "aappma"), ("rc", "recip"), ("ps", "specifique"), ("rg", "reglement")):
+        if a[col]:
+            p[cle] = str(a[col])
+    if a["cat"]:
+        p["ca"] = int(a["cat"])
+    if a["reserve"]:
+        p["rs"] = int(a["reserve"])
+    return p
+
+
 def main():
     eaux = gpd.read_file(DATA / "eaux.gpkg")
     peches = pd.read_csv(DATA / "peches.csv")
@@ -140,6 +183,13 @@ def main():
         v = scores[k] * bonus
         ref = np.percentile(v[v > 0], 99.5) if (v > 0).any() else 1
         out[k] = np.rint(np.clip(v / max(ref, 1e-6), 0, 1) ** 1.2 * 1000).astype(int)
+    # Accès : statut, association, réciprocité, réserves (étape 5)
+    acces = lire_acces(eaux)
+    reserve = (acces["reserve"] == 1).to_numpy()
+    for k in ESP:
+        out.loc[reserve, k] = 0
+    if reserve.any():
+        print(f"{int(reserve.sum())} eaux entièrement en réserve de pêche : score nul")
     out.to_csv(DATA / "potentiel.csv", index=False)
 
     # Espèces vues lors des pêches scientifiques, rattachées au morceau de rivière
@@ -168,6 +218,7 @@ def main():
             p["f"] = 2 if row["aappma"] else 1
         if int(row["id"]) in vues:
             p["v"] = sorted(vues[int(row["id"])])
+        p.update(proprietes_acces(acces.loc[i]))
         features.append({"type": "Feature", "properties": p, "geometry": g})
     ecrire_json(DONNEES_SITE / "eaux.json", {"type": "FeatureCollection", "especes": ESP, "features": features}, compact=True)
     ecrire_json(DATA / "potentiel_resume.json", resume)
