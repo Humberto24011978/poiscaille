@@ -3,7 +3,11 @@ name: Conditions du jour
 # Chaque matin : météo, débits, conditions du jour et prévisions, publication du site.
 on:
   schedule:
+    # Heures UTC : environ 5 h 20, 6 h 50, 8 h 15 et 10 h 45 à Paris en hiver
     - cron: "23 4 * * *"
+    - cron: "53 5 * * *"
+    - cron: "19 7 * * *"
+    - cron: "47 9 * * *"
   workflow_dispatch:
   workflow_run:
     workflows: ["Préparation des données"]
@@ -16,15 +20,34 @@ permissions:
   contents: read
   pages: write
   id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: true
+  actions: read
 
 jobs:
-  jour:
-    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+  controle:
     runs-on: ubuntu-latest
+    outputs:
+      faire: ${{ steps.verif.outputs.faire }}
+    steps:
+      - id: verif
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Les déclenchements programmés de GitHub peuvent être en retard ou sautés : on en prévoit plusieurs
+          # dans la matinée, et chacun s'arrête si la mise à jour du jour (heure de Paris) a déjà réussi.
+          if [ "${{ github.event_name }}" != "schedule" ]; then echo "faire=oui" >> "$GITHUB_OUTPUT"; exit 0; fi
+          debut=$(date -u -d "TZ=\"Europe/Paris\" $(TZ=Europe/Paris date +%F) 00:00" +%FT%TZ)
+          n=$(gh api "repos/${{ github.repository }}/actions/workflows/quotidien.yml/runs?status=success&per_page=30" \
+                --jq "[.workflow_runs[] | select(.created_at >= \"$debut\")] | length")
+          if [ "${n:-0}" -gt 0 ]; then echo "Mise à jour déjà faite aujourd'hui."; echo "faire=non" >> "$GITHUB_OUTPUT";
+          else echo "faire=oui" >> "$GITHUB_OUTPUT"; fi
+
+  jour:
+    needs: controle
+    if: needs.controle.outputs.faire == 'oui' && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deploiement.outputs.page_url }}
