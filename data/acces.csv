@@ -71,9 +71,9 @@ id,dep,statut,cat,aappma,recip,reserve,specifique,reglement,source
 69,68,inconnu,0,,,0,,,
 70,68,inconnu,0,,,0,,,
 71,68,inconnu,0,,,0,,,
-72,68,aappma,1,Fédération de pêche du Haut Rhin,réciprocitaire (URNE),0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-73,68,aappma,1,Fédération de pêche du Haut Rhin,réciprocitaire (URNE),0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-74,68,aappma,1,Fédération de pêche du Haut Rhin,réciprocitaire (URNE),0,Touristique,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+72,68,public,1,Fédération de pêche du Haut Rhin,réciprocitaire (URNE),0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+73,68,public,1,Fédération de pêche du Haut Rhin,réciprocitaire (URNE),0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+74,68,public,1,Fédération de pêche du Haut Rhin,réciprocitaire (URNE),0,Touristique,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 75,67,inconnu,0,,,0,,,
 76,67,inconnu,0,,,0,,,
 77,67,inconnu,0,,,0,,,
@@ -82,8 +82,8 @@ id,dep,statut,cat,aappma,recip,reserve,specifique,reglement,source
 80,67,inconnu,0,,,0,,,
 81,67,inconnu,0,,,0,,,
 82,57,inconnu,0,,,0,,,
-83,68,aappma,1,Fédération de pêche du Haut Rhin,réciprocitaire (URNE),0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-84,68,aappma,1,Fédération de pêche du Haut Rhin,réciprocitaire (URNE),0,Touristique,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+83,68,public,1,Fédération de pêche du Haut Rhin,réciprocitaire (URNE),0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+84,68,public,1,Fédération de pêche du Haut Rhin,réciprocitaire (URNE),0,Touristique,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 85,54,inconnu,0,,,0,,,
 86,57,inconnu,0,,,0,,,
 87,67,inconnu,0,,,0,,,
@@ -1843,7 +1843,7 @@ id,dep,statut,cat,aappma,recip,reserve,specifique,reglement,source
 1841,68,inconnu,0,,,0,,,
 1842,67,inconnu,0,,,0,,,
 1843,68,inconnu,0,,,0,,,
-1844,68,aappma,1,Fédération de pêche du Haut Rhin,réciprocitaire (URNE),0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+1844,68,public,1,Fédération de pêche du Haut Rhin,réciprocitaire (URNE),0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 1845,67,public,0,,,0,,,domaine public fluvial (IGN)
 1846,67,inconnu,0,,,0,,,
 1847,67,inconnu,0,,,0,,,
@@ -1865,11 +1865,11 @@ id,dep,statut,cat,aappma,recip,reserve,specifique,reglement,source
 1863,67,inconnu,0,,,0,,,
 1864,67,inconnu,0,,,0,,,
 1865,67,inconnu,0,,,0,,,
-1866,68,aappma,1,Fédération de pêche du Haut Rhin,réciprocitaire (URNE),0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-1867,68,aappma,1,Fédération de pêche du Haut Rhin,réciprocitaire (URNE),0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+1866,68,public,1,Fédération de pêche du Haut Rhin,réciprocitaire (URNE),0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+1867,68,public,1,Fédération de pêche du Haut Rhin,réciprocitaire (URNE),0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 1868,67,inconnu,0,,,0,,,
-1869,68,aappma,1,Fédération de pêche du Haut Rhin,réciprocitaire (URNE),0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-1870,68,aappma,1,Fédération de pêche du Haut Rhin,réciprocitaire (URNE),0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+1869,68,public,1,Fédération de pêche du Haut Rhin,réciprocitaire (URNE),0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+1870,68,public,1,Fédération de pêche du Haut Rhin,réciprocitaire (URNE),0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 1871,67,inconnu,0,,,0,,,
 1872,67,inconnu,0,,,0,,,
 1873,67,inconnu,0,,,0,,,
@@ -2518,9 +2518,9 @@ id,dep,statut,cat,aappma,recip,reserve,specifique,reglement,source
 2516,67,inconnu,0,,,0,,,
 2517,67,inconnu,0,,,0,,,
 2518,67,inconnu,0,,,0,,,
-2519,68,aappma,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+2519,68,public,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 2520,67,inconnu,0,,,0,,,
-2521,68,aappma,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+2521,68,public,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 2522,68,inconnu,0,,,0,,,
 2523,67,inconnu,0,,,0,,,
 2524,67,inconnu,0,,,0,,,
@@ -3478,7 +3478,7 @@ id,dep,statut,cat,aappma,recip,reserve,specifique,reglement,source
 3476,67,inconnu,0,,,0,,,
 3477,67,inconnu,0,,,0,,,
 3478,88,inconnu,0,,,0,,,
-3479,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+3479,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 3480,67,inconnu,0,,,0,,,
 3481,67,inconnu,0,,,0,,,
 3482,88,inconnu,0,,,0,,,
@@ -3859,9 +3859,9 @@ id,dep,statut,cat,aappma,recip,reserve,specifique,reglement,source
 3857,88,inconnu,0,,,0,,,
 3858,57,inconnu,0,,,0,,,
 3859,57,inconnu,0,,,0,,,
-3860,68,aappma,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-3861,68,aappma,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-3862,68,aappma,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+3860,68,public,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+3861,68,public,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+3862,68,public,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 3863,55,inconnu,0,,,0,,,
 3864,55,inconnu,0,,,0,,,
 3865,55,inconnu,0,,,0,,,
@@ -3875,7 +3875,7 @@ id,dep,statut,cat,aappma,recip,reserve,specifique,reglement,source
 3873,54,inconnu,0,,,0,,,
 3874,54,inconnu,0,,,0,,,
 3875,88,inconnu,0,,,0,,,
-3876,68,aappma,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+3876,68,public,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 3877,55,inconnu,0,,,0,,,
 3878,55,inconnu,0,,,0,,,
 3879,55,inconnu,0,,,0,,,
@@ -3929,10 +3929,10 @@ id,dep,statut,cat,aappma,recip,reserve,specifique,reglement,source
 3927,67,inconnu,0,,,0,,,
 3928,57,inconnu,0,,,0,,,
 3929,57,public,0,,,0,,,domaine public fluvial (IGN)
-3930,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-3931,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-3932,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-3933,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+3930,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+3931,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+3932,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+3933,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 3934,67,inconnu,0,,,0,,,
 3935,57,inconnu,0,,,0,,,
 3936,57,inconnu,0,,,0,,,
@@ -4025,7 +4025,7 @@ id,dep,statut,cat,aappma,recip,reserve,specifique,reglement,source
 4023,54,inconnu,0,,,0,,,
 4024,67,public,0,,,0,,,domaine public fluvial (IGN)
 4025,68,inconnu,0,,,0,,,
-4026,68,aappma,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+4026,68,public,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 4027,67,inconnu,0,,,0,,,
 4028,67,inconnu,0,,,0,,,
 4029,67,inconnu,0,,,0,,,
@@ -4078,7 +4078,7 @@ id,dep,statut,cat,aappma,recip,reserve,specifique,reglement,source
 4076,67,inconnu,0,,,0,,,
 4077,68,inconnu,0,,,0,,,
 4078,68,inconnu,0,,,0,,,
-4079,68,aappma,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+4079,68,public,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 4080,68,inconnu,0,,,0,,,
 4081,68,inconnu,0,,,0,,,
 4082,68,inconnu,0,,,0,,,
@@ -4604,8 +4604,8 @@ id,dep,statut,cat,aappma,recip,reserve,specifique,reglement,source
 4602,68,public,2,,,2,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 4603,68,public,2,,,2,Carpe de nuit,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 4604,68,public,2,,,2,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-4605,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-4606,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+4605,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+4606,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 4607,54,public,0,,,0,,,domaine public fluvial (IGN)
 4608,54,public,0,,,0,,,domaine public fluvial (IGN)
 4609,54,public,0,,,0,,,domaine public fluvial (IGN)
@@ -4964,48 +4964,48 @@ id,dep,statut,cat,aappma,recip,reserve,specifique,reglement,source
 4962,55,inconnu,0,,,0,,,
 4963,55,inconnu,0,,,0,,,
 4964,55,inconnu,0,,,0,,,
-4965,68,aappma,2,Fédération de pêche du Haut Rhin,,2,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-4966,68,aappma,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-4967,68,aappma,2,Brochet de Mulhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-4968,68,aappma,2,Brochet de Mulhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-4969,68,aappma,2,Brochet de Mulhouse,,0,Carpe de nuit,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-4970,68,aappma,2,SPL Mulhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-4971,68,aappma,2,SPL Mulhouse,,0,Carpe de nuit,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-4972,68,aappma,2,Brochets de Mulhouse,,0,Carpe de nuit,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-4973,68,aappma,2,Brochets de Mulhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-4974,68,aappma,2,Brochets de Mulhouse,,2,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+4965,68,public,2,Fédération de pêche du Haut Rhin,,2,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+4966,68,public,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+4967,68,public,2,Brochet de Mulhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+4968,68,public,2,Brochet de Mulhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+4969,68,public,2,Brochet de Mulhouse,,0,Carpe de nuit,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+4970,68,public,2,SPL Mulhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+4971,68,public,2,SPL Mulhouse,,0,Carpe de nuit,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+4972,68,public,2,Brochets de Mulhouse,,0,Carpe de nuit,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+4973,68,public,2,Brochets de Mulhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+4974,68,public,2,Brochets de Mulhouse,,2,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 4975,68,inconnu,0,,,2,,,
 4976,68,inconnu,0,,,0,,,
 4977,68,inconnu,0,,,0,,,fédération du Haut-Rhin
 4978,68,inconnu,0,,,0,,,
 4979,68,inconnu,0,,,0,,,
-4980,68,aappma,2,SPL Mulhouse,,0,Carpe de nuit,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-4981,68,aappma,2,SPL Mulhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-4982,68,aappma,2,SPL Mulhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-4983,68,aappma,2,SPL Mulhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-4984,68,aappma,2,Brochets de Mulhouse,,0,Carpe de nuit,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-4985,68,aappma,2,Brochets de Mulhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-4986,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+4980,68,public,2,SPL Mulhouse,,0,Carpe de nuit,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+4981,68,public,2,SPL Mulhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+4982,68,public,2,SPL Mulhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+4983,68,public,2,SPL Mulhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+4984,68,public,2,Brochets de Mulhouse,,0,Carpe de nuit,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+4985,68,public,2,Brochets de Mulhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+4986,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 4987,68,public,0,,,0,,,domaine public fluvial (IGN)
-4988,68,aappma,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-4989,68,aappma,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-4990,68,aappma,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-4991,68,aappma,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-4992,68,aappma,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-4993,68,aappma,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-4994,68,aappma,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-4995,68,aappma,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-4996,68,aappma,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-4997,68,aappma,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-4998,68,aappma,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-4999,68,aappma,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-5000,68,aappma,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-5001,68,aappma,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-5002,68,aappma,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-5003,68,aappma,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-5004,68,aappma,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-5005,68,aappma,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-5006,68,aappma,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+4988,68,public,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+4989,68,public,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+4990,68,public,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+4991,68,public,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+4992,68,public,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+4993,68,public,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+4994,68,public,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+4995,68,public,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+4996,68,public,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+4997,68,public,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+4998,68,public,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+4999,68,public,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+5000,68,public,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+5001,68,public,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+5002,68,public,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+5003,68,public,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+5004,68,public,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+5005,68,public,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+5006,68,public,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 5007,67,public,0,,,0,,,domaine public fluvial (IGN)
 5008,68,aappma,2,Fraternelle de Colmar,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 5009,68,aappma,2,Fraternelle de Colmar,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
@@ -5480,24 +5480,24 @@ id,dep,statut,cat,aappma,recip,reserve,specifique,reglement,source
 5478,68,inconnu,0,,,0,,,
 5479,67,inconnu,0,,,0,,,
 5480,67,inconnu,0,,,0,,,
-5481,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-5482,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+5481,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+5482,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 5483,68,public,0,,,2,,,domaine public fluvial (IGN)
-5484,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-5485,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-5486,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-5487,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-5488,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-5489,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+5484,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+5485,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+5486,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+5487,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+5488,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+5489,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 5490,68,public,0,,,2,,,domaine public fluvial (IGN)
-5491,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-5492,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-5493,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-5494,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-5495,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-5496,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+5491,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+5492,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+5493,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+5494,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+5495,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+5496,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 5497,68,public,0,,,0,,,domaine public fluvial (IGN)
-5498,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+5498,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 5499,68,inconnu,0,,,0,,,
 5500,68,inconnu,0,,,0,,,
 5501,67,inconnu,0,,,0,,,
@@ -5512,28 +5512,28 @@ id,dep,statut,cat,aappma,recip,reserve,specifique,reglement,source
 5510,67,public,0,,,0,,,domaine public fluvial (IGN)
 5511,67,public,0,,,0,,,domaine public fluvial (IGN)
 5512,67,public,0,,,0,,,domaine public fluvial (IGN)
-5513,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+5513,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 5514,68,public,0,,,0,,,domaine public fluvial (IGN)
-5515,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-5516,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-5517,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-5518,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-5519,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-5520,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-5521,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+5515,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+5516,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+5517,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+5518,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+5519,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+5520,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+5521,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 5522,68,public,0,,,0,Carpe de nuit,https://www.peche68.fr/5577-pecher-de-nuit.htm,domaine public fluvial (IGN)
-5523,68,aappma,2,Truites de Colmar,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+5523,68,public,2,Truites de Colmar,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 5524,67,public,0,,,0,,,domaine public fluvial (IGN)
 5525,67,public,0,,,0,,,domaine public fluvial (IGN)
 5526,68,public,0,,,0,,,domaine public fluvial (IGN)
 5527,68,public,0,,,0,,,domaine public fluvial (IGN)
-5528,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-5529,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-5530,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-5531,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-5532,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-5533,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-5534,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+5528,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+5529,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+5530,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+5531,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+5532,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+5533,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+5534,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 5535,67,public,0,,,0,,,domaine public fluvial (IGN)
 5536,67,public,0,,,0,,,domaine public fluvial (IGN)
 5537,67,public,0,,,0,,,domaine public fluvial (IGN)
@@ -6015,7 +6015,7 @@ id,dep,statut,cat,aappma,recip,reserve,specifique,reglement,source
 6013,57,inconnu,0,,,0,,,
 6014,68,inconnu,0,,,0,,,
 6015,68,inconnu,0,,,0,,,
-6016,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+6016,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 6017,68,inconnu,0,,,0,,,
 6018,67,inconnu,0,,,0,,,
 6019,57,inconnu,0,,,0,,,
@@ -6314,7 +6314,7 @@ id,dep,statut,cat,aappma,recip,reserve,specifique,reglement,source
 6312,57,inconnu,0,,,0,,,
 6313,68,inconnu,0,,,0,,,
 6314,68,inconnu,0,,,0,,,
-6315,68,aappma,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+6315,68,public,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 6316,88,inconnu,0,,,0,,,
 6317,88,inconnu,0,,,0,,,
 6318,88,inconnu,0,,,0,,,
@@ -6862,7 +6862,7 @@ id,dep,statut,cat,aappma,recip,reserve,specifique,reglement,source
 6860,68,inconnu,0,,,0,,,
 6861,68,inconnu,0,,,0,,,
 6862,68,inconnu,0,,,0,,,
-6863,68,aappma,2,SPL Mulhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+6863,68,public,2,SPL Mulhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 6864,55,inconnu,0,,,0,,,
 6865,54,inconnu,0,,,0,,,
 6866,54,inconnu,0,,,0,,,
@@ -9051,7 +9051,7 @@ id,dep,statut,cat,aappma,recip,reserve,specifique,reglement,source
 9049,68,inconnu,0,,,0,,,
 9050,68,inconnu,0,,,0,,,
 9051,68,inconnu,0,,,0,,,
-9052,68,aappma,2,Brochets de Mulhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+9052,68,public,2,Brochets de Mulhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 9053,68,inconnu,0,,,0,,,
 9054,55,inconnu,0,,,0,,,
 9055,57,inconnu,0,,,0,,,
@@ -10938,7 +10938,7 @@ id,dep,statut,cat,aappma,recip,reserve,specifique,reglement,source
 10936,68,inconnu,0,,,0,,,
 10937,68,inconnu,0,,,0,,,
 10938,68,inconnu,0,,,0,,,
-10939,68,aappma,2,SPL Mulhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+10939,68,public,2,SPL Mulhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 10940,68,inconnu,0,,,0,,,
 10941,68,aappma,2,SPL Mulhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 10942,68,inconnu,0,,,0,,,
@@ -11039,7 +11039,7 @@ id,dep,statut,cat,aappma,recip,reserve,specifique,reglement,source
 11037,68,inconnu,0,,,0,,,
 11038,68,inconnu,0,,,0,,,
 11039,68,inconnu,0,,,0,,,
-11040,68,aappma,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+11040,68,public,2,Fédération de pêche,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 11041,88,inconnu,0,,,0,,,
 11042,88,inconnu,0,,,0,,,
 11043,88,inconnu,0,,,0,,,
@@ -12088,7 +12088,7 @@ id,dep,statut,cat,aappma,recip,reserve,specifique,reglement,source
 12086,67,inconnu,0,,,0,,,
 12087,67,inconnu,0,,,0,,,
 12088,67,inconnu,0,,,0,,,
-12089,68,aappma,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+12089,68,public,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 12090,88,inconnu,0,,,0,,,
 12091,88,inconnu,0,,,0,,,
 12092,88,inconnu,0,,,0,,,
@@ -13398,7 +13398,7 @@ id,dep,statut,cat,aappma,recip,reserve,specifique,reglement,source
 13396,68,aappma,2,COGILL,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 13397,68,aappma,2,COGILL,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 13398,68,aappma,2,COGILL,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-13399,68,aappma,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+13399,68,public,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 13400,67,inconnu,0,,,0,,,
 13401,67,inconnu,0,,,0,,,
 13402,67,inconnu,0,,,0,,,
@@ -13421,12 +13421,12 @@ id,dep,statut,cat,aappma,recip,reserve,specifique,reglement,source
 13419,67,inconnu,0,,,0,,,
 13420,67,inconnu,0,,,0,,,
 13421,68,aappma,2,COGILL,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-13422,68,aappma,2,Fédération de pêche du Haut Rhin,,0,Carpe de nuit,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-13423,68,aappma,2,Fédération de pêche du Haut Rhin,,0,Carpe de nuit,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-13424,68,aappma,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-13425,68,aappma,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-13426,68,aappma,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-13427,68,aappma,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+13422,68,public,2,Fédération de pêche du Haut Rhin,,0,Carpe de nuit,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+13423,68,public,2,Fédération de pêche du Haut Rhin,,0,Carpe de nuit,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+13424,68,public,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+13425,68,public,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+13426,68,public,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+13427,68,public,2,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 13428,67,inconnu,0,,,0,,,
 13429,67,inconnu,0,,,0,,,
 13430,67,inconnu,0,,,0,,,
@@ -13479,8 +13479,8 @@ id,dep,statut,cat,aappma,recip,reserve,specifique,reglement,source
 13477,67,inconnu,0,,,0,,,
 13478,67,inconnu,0,,,0,,,
 13479,67,public,0,,,0,,,domaine public fluvial (IGN)
-13480,68,aappma,2,Brochets de Mulhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-13481,68,aappma,2,SPL Mulhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+13480,68,public,2,Brochets de Mulhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+13481,68,public,2,SPL Mulhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 13482,67,public,0,,,0,,,domaine public fluvial (IGN)
 13483,88,inconnu,0,,,0,,,
 13484,54,inconnu,0,,,0,,,
@@ -16155,7 +16155,7 @@ id,dep,statut,cat,aappma,recip,reserve,specifique,reglement,source
 16153,68,inconnu,0,,,0,,,
 16154,68,inconnu,0,,,0,,,
 16155,68,aappma,2,Brochets de Mulhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-16156,68,aappma,2,Brochets de Mulhouse,,2,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+16156,68,public,2,Brochets de Mulhouse,,2,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 16157,54,inconnu,0,,,0,,,
 16158,54,inconnu,0,,,0,,,
 16159,54,inconnu,0,,,0,,,
@@ -17312,35 +17312,35 @@ id,dep,statut,cat,aappma,recip,reserve,specifique,reglement,source
 17310,67,inconnu,0,,,0,,,
 17311,57,inconnu,0,,,0,,,
 17312,68,inconnu,0,,,0,,,
-17313,68,aappma,2,Saint Louis Neuweg,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-17314,68,aappma,2,Saint Louis Neuweg,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-17315,68,aappma,2,Bassin potassiquu,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-17316,68,aappma,2,Bassin potassiquu,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-17317,68,aappma,2,Riedisheim,,0,NO KILL,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-17318,68,aappma,2,Riedisheim,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-17319,68,aappma,2,Brochets de Mulhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-17320,68,aappma,2,Brochets de Mulhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-17321,68,aappma,2,SPL MUlhouse,,0,Carpe de nuit,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-17322,68,aappma,2,SPL MUlhouse,,0,Carpe de nuit,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-17323,68,aappma,2,Fédération de pêche du Haut Rhin,,2,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-17324,68,aappma,2,SPL MUlhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-17325,68,aappma,2,Huningue,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-17326,68,aappma,2,Huningue,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-17327,68,aappma,2,Huningue,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-17328,68,aappma,2,SPL MUlhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-17329,68,aappma,2,SPL MUlhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-17330,68,aappma,2,SPL MUlhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-17331,68,aappma,2,Sausheim,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-17332,68,aappma,2,Sausheim,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-17333,68,aappma,2,Sans souci,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-17334,68,aappma,2,Sans souci,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-17335,68,aappma,2,Sans souci,,2,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+17313,68,public,2,Saint Louis Neuweg,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+17314,68,public,2,Saint Louis Neuweg,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+17315,68,public,2,Bassin potassiquu,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+17316,68,public,2,Bassin potassiquu,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+17317,68,public,2,Riedisheim,,0,NO KILL,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+17318,68,public,2,Riedisheim,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+17319,68,public,2,Brochets de Mulhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+17320,68,public,2,Brochets de Mulhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+17321,68,public,2,SPL MUlhouse,,0,Carpe de nuit,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+17322,68,public,2,SPL MUlhouse,,0,Carpe de nuit,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+17323,68,public,2,Fédération de pêche du Haut Rhin,,2,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+17324,68,public,2,SPL MUlhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+17325,68,public,2,Huningue,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+17326,68,public,2,Huningue,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+17327,68,public,2,Huningue,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+17328,68,public,2,SPL MUlhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+17329,68,public,2,SPL MUlhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+17330,68,public,2,SPL MUlhouse,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+17331,68,public,2,Sausheim,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+17332,68,public,2,Sausheim,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+17333,68,public,2,Sans souci,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+17334,68,public,2,Sans souci,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+17335,68,public,2,Sans souci,,2,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 17336,68,public,0,,,2,,,domaine public fluvial (IGN)
 17337,67,public,0,,,0,,,domaine public fluvial (IGN)
-17338,68,aappma,2,Sans souci,,0,Carpe de nuit,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-17339,68,aappma,2,Fraternelle de Colmar,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-17340,68,aappma,2,Fraternelle de Colmar,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-17341,68,aappma,2,Truites de Colmar,,2,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+17338,68,public,2,Sans souci,,0,Carpe de nuit,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+17339,68,public,2,Fraternelle de Colmar,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+17340,68,public,2,Fraternelle de Colmar,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+17341,68,public,2,Truites de Colmar,,2,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 17342,67,public,0,,,0,,,domaine public fluvial (IGN)
 17343,67,public,0,,,0,,,domaine public fluvial (IGN)
 17344,67,public,0,,,0,,,domaine public fluvial (IGN)
@@ -17808,7 +17808,7 @@ id,dep,statut,cat,aappma,recip,reserve,specifique,reglement,source
 17806,68,inconnu,0,,,0,,,
 17807,68,inconnu,0,,,0,,,
 17808,68,inconnu,0,,,0,,,
-17809,68,aappma,2,Fédération du pêche du Haut Rhin,,0,Carpe de nuit,http://www.peche68.fr/images/VAUBAN_COURTAVON_REGLEMENTATION_2019-bec7.pdf,fédération du Haut-Rhin
+17809,68,public,2,Fédération du pêche du Haut Rhin,,0,Carpe de nuit,http://www.peche68.fr/images/VAUBAN_COURTAVON_REGLEMENTATION_2019-bec7.pdf,fédération du Haut-Rhin
 17810,67,inconnu,0,,,0,,,
 17811,67,prive,0,,,0,,,OpenStreetMap (privé ou payant)
 17812,67,inconnu,0,,,0,,,
@@ -18413,7 +18413,7 @@ id,dep,statut,cat,aappma,recip,reserve,specifique,reglement,source
 18411,88,inconnu,0,,,0,,,
 18412,88,inconnu,0,,,0,,,
 18413,68,aappma,1,Guebwiller,réciprocitaire (URNE),0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
-18414,68,aappma,1,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
+18414,68,public,1,Fédération de pêche du Haut Rhin,,0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 18415,68,aappma,1,Vallée de la Doller,réciprocitaire (URNE),0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 18416,68,aappma,1,Vallée de la Doller,réciprocitaire (URNE),0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
 18417,68,aappma,1,Vallée de la Doller,réciprocitaire (URNE),0,,https://www.peche68.fr/5575-reglementation.htm,fédération du Haut-Rhin
