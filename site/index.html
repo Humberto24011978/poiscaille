@@ -648,6 +648,7 @@ const ZONE_RECH = "4.8,47.4,8.25,49.65";
 const TYPES_OSM = { shelter: "abri", wilderness_hut: "refuge", alpine_hut: "refuge", peak: "sommet", saddle: "col",
   viewpoint: "point de vue", spring: "source", rock: "rocher", cave_entrance: "grotte", village: "village", town: "ville",
   city: "ville", hamlet: "hameau", locality: "lieu-dit", isolated_dwelling: "lieu-dit" };
+const SANS_INTERET = /^(pont|cimetière|stand de tir|parking|zone d'activités?|zone industrielle|station d'épuration|déchèterie|poste de transformation|quartier)/i;
 const champRech = document.getElementById("recherche"), listeRech = document.getElementById("suggestions");
 const sur = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 let rechMinuterie = null, rechJeton = 0, lieux = [], choixLieu = -1, marqueurLieu = null;
@@ -655,7 +656,7 @@ let rechMinuterie = null, rechJeton = 0, lieux = [], choixLieu = -1, marqueurLie
 async function chercherLieux(q) {
   const ign = fetch(`https://data.geopf.fr/geocodage/completion?text=${encodeURIComponent(q)}&type=PositionOfInterest&maximumResponses=7&bbox=${ZONE_RECH}`)
     .then((r) => (r.ok ? r.json() : { results: [] }))
-    .then((j) => (j.results || []).filter((f) => f.x && f.y).map((f) => ({
+    .then((j) => (j.results || []).filter((f) => f.x && f.y && !SANS_INTERET.test((f.poiType || [])[0] || "")).map((f) => ({
       nom: (f.names && f.names[0]) || f.fulltext.split(",")[0], ou: [f.zipcode, f.city].filter(Boolean).join(" "),
       type: (f.poiType || [])[0] === "administratif" ? "commune" : (f.kind || (f.poiType || [])[0] || ""), lat: f.y, lng: f.x })))
     .catch(() => []);
