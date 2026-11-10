@@ -3,11 +3,9 @@ name: Conditions du jour
 # Chaque matin : météo, débits, conditions du jour et prévisions, publication du site.
 on:
   schedule:
-    # Heures UTC : environ 5 h 20, 6 h 50, 8 h 15 et 10 h 45 à Paris en hiver
-    - cron: "23 4 * * *"
-    - cron: "53 5 * * *"
-    - cron: "19 7 * * *"
-    - cron: "47 9 * * *"
+    # Les déclenchements programmés de GitHub sont souvent retardés ou sautés : on en prévoit un par heure
+    # (de 4 h à 21 h à Paris en hiver) ; chacun s'arrête aussitôt si le site affiche déjà la date du jour.
+    - cron: "23 3-20 * * *"
   workflow_dispatch:
   workflow_run:
     workflows: ["Préparation des données"]
@@ -29,17 +27,13 @@ jobs:
       faire: ${{ steps.verif.outputs.faire }}
     steps:
       - id: verif
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
-          # Les déclenchements programmés de GitHub peuvent être en retard ou sautés : on en prévoit plusieurs
-          # dans la matinée, et chacun s'arrête si la mise à jour du jour (heure de Paris) a déjà réussi.
+          # Déclenchement programmé : on ne refait pas la mise à jour si le site affiche déjà la date du jour (Paris)
           if [ "${{ github.event_name }}" != "schedule" ]; then echo "faire=oui" >> "$GITHUB_OUTPUT"; exit 0; fi
-          debut=$(date -u -d "TZ=\"Europe/Paris\" $(TZ=Europe/Paris date +%F) 00:00" +%FT%TZ)
-          n=$(gh api "repos/${{ github.repository }}/actions/workflows/quotidien.yml/runs?status=success&per_page=30" \
-                --jq "[.workflow_runs[] | select(.created_at >= \"$debut\")] | length")
-          if [ "${n:-0}" -gt 0 ]; then echo "Mise à jour déjà faite aujourd'hui."; echo "faire=non" >> "$GITHUB_OUTPUT";
-          else echo "faire=oui" >> "$GITHUB_OUTPUT"; fi
+          aujourdhui=$(TZ=Europe/Paris date +%F)
+          date_site=$(curl -fsS --max-time 30 "https://humberto24011978.github.io/poiscaille/donnees/info.json?t=$(date +%s)" | jq -r '.date // empty' || true)
+          if [ "$date_site" = "$aujourdhui" ]; then echo "Site déjà à jour ($date_site)."; echo "faire=non" >> "$GITHUB_OUTPUT";
+          else echo "Site du ${date_site:-?} : mise à jour."; echo "faire=oui" >> "$GITHUB_OUTPUT"; fi
 
   jour:
     needs: controle
