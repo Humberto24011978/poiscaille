@@ -405,13 +405,13 @@ function style(f, s) {
 }
 
 // Niveau de détail : les grandes eaux d'abord, les petites en zoomant. La carte reste fluide sur téléphone.
-// 0 : toujours (Rhin, canaux, rivières larges, plans d'eau de 5 ha et plus) ; 1 : à partir du zoom 10 ; 2 : zoom 12.
+// 0 : toujours (Rhin, canaux, rivières moyennes et grandes, plans d'eau de 10 ha et plus) ; 1 : à partir du
+// zoom 10 (petites rivières, plans d'eau de 2 ha et plus) ; 2 : zoom 12 (ruisseaux, petits étangs).
 const ZOOM_NIVEAU = [0, 10, 12];
 function niveauDetail(p) {
-  let n;
-  if (["riviere", "canal", "rhin"].includes(p.t)) n = (p.t !== "riviere" || p.o >= 4 || p.w >= 2) ? 0 : (p.o >= 2 || p.n) ? 1 : 2;
-  else n = p.s >= 5 ? 0 : p.s >= 1 ? 1 : 2;
-  return n > 0 && Math.max(...p.p) >= 600 ? n - 1 : n;       // un très bon coin se voit un cran plus tôt
+  if (p.t === "canal" || p.t === "rhin") return 0;
+  if (p.t === "riviere") return (p.o >= 5 || p.w >= 3) ? 0 : (p.o >= 3 || p.w >= 2) ? 1 : 2;
+  return p.s >= 10 ? 0 : p.s >= 2 ? 1 : 2;
 }
 let scores = [], coucheFiltre = null, couches = [];
 function ajusterDetail() {
