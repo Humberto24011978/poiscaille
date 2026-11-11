@@ -1,0 +1,42 @@
+{
+ "truite": {
+  "auc": 0.841,
+  "stations": 304,
+  "niveau": "bonne"
+ },
+ "ombre": {
+  "auc": 0.835,
+  "stations": 33,
+  "niveau": "bonne"
+ },
+ "brochet": {
+  "auc": 0.793,
+  "stations": 211,
+  "niveau": "correcte"
+ },
+ "sandre": {
+  "auc": 0.869,
+  "stations": 42,
+  "niveau": "bonne"
+ },
+ "perche": {
+  "auc": 0.755,
+  "stations": 241,
+  "niveau": "correcte"
+ },
+ "carpe": {
+  "auc": 0.743,
+  "stations": 72,
+  "niveau": "correcte"
+ },
+ "blancs": {
+  "auc": 0.826,
+  "stations": 395,
+  "niveau": "bonne"
+ },
+ "silure": {
+  "auc": 0.909,
+  "stations": 59,
+  "niveau": "bonne"
+ }
+}

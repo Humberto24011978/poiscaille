@@ -14,6 +14,7 @@ Score du jour (0 à 1000) = potentiel × indice.
 Résultats : site/donnees/jour_<espece>.json et site/donnees/info.json
 """
 import datetime as dt
+import json
 import unicodedata
 from zoneinfo import ZoneInfo
 
@@ -403,6 +404,7 @@ def main():
                       "ratio": round(float(s.ratio), 2), "tendance": round(float(s.tendance), 2), "etat": etat_debit(s.ratio)}
                      for s in st.itertuples()],
         "lune": lune(aujourdhui),
+        "fiabilite": json.loads((DATA / "fiabilite.json").read_text(encoding="utf-8")) if (DATA / "fiabilite.json").exists() else {},
         "assecs": assecs,
         "onde": obs_onde,
         "jours": [{"pression_hpa": round(float(np.nanmedian(pression[z_all, JOURS_PASSES + k])), 1),

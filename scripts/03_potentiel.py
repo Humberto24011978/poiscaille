@@ -18,12 +18,14 @@ import geopandas as gpd
 import numpy as np
 import pandas as pd
 from shapely.geometry import mapping
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import roc_auc_score
 
 from commun import DATA, DONNEES_SITE, ESPECES, ecrire_json, pic, rampe
 
 ESP = list(ESPECES)
 MIN_PRESENCES = 15
+PLIS = 5
 
 
 def regles_rivieres(e):
@@ -180,6 +182,12 @@ def main():
     pos = {idx: i for i, idx in enumerate(riv.index)}
     lignes = np.array([pos[i] for i in st["index_right"]])
 
+    # Secteurs de 20 km, numérotés au hasard, pour la validation
+    num = (st.geometry.x // 20000).astype(int) * 1000 + (st.geometry.y // 20000).astype(int)
+    hasard = {b: i for i, b in enumerate(np.random.default_rng(3).permutation(np.unique(num)))}
+    secteurs = np.array([hasard[b] for b in num])
+    fiabilite = {}
+
     r_riv = regles_rivieres(riv)
     r_pl = regles_plans(plans) if len(plans) else {k: np.array([]) for k in ESP}
     resume = {}
@@ -187,13 +195,33 @@ def main():
         y = (st[f"{k}_n"] > 0).to_numpy().astype(int)
         regle = r_riv[k]
         if y.sum() >= MIN_PRESENCES and (len(y) - y.sum()) >= MIN_PRESENCES:
-            rf = RandomForestClassifier(n_estimators=400, min_samples_leaf=4, max_features=0.6, n_jobs=-1,
-                                        random_state=42)
-            rf.fit(X_riv[lignes], y)
-            proba = rf.predict_proba(X_riv)[:, 1]
+            # On apprend la fréquence de présence (part des pêches où l'espèce a été prise) : une station où
+            # l'espèce est prise à chaque pêche compte plus qu'une station où elle n'a été vue qu'une fois.
+            freq = np.clip(st[f"{k}_n"].to_numpy(float) / np.maximum(st["n_peches"].to_numpy(float), 1), 0, 1)
+            X, blocs = X_riv[lignes], secteurs
+            # Validation sur des secteurs de 20 km tenus à l'écart (AUC : 0,5 = hasard, 1 = parfait)
+            hors = np.full(len(y), np.nan)
+            for pli in range(PLIS):
+                test = blocs % PLIS == pli
+                if y[~test].sum() < 8 or not test.any():
+                    continue
+                m = RandomForestRegressor(n_estimators=200, min_samples_leaf=4, max_features=0.6, n_jobs=-1,
+                                          random_state=pli).fit(X[~test], freq[~test])
+                hors[test] = m.predict(X[test])
+            ok = ~np.isnan(hors)
+            auc = float(roc_auc_score(y[ok], hors[ok])) if 0 < y[ok].sum() < ok.sum() else 0.5
+            rf = RandomForestRegressor(n_estimators=400, min_samples_leaf=4, max_features=0.6, n_jobs=-1,
+                                       random_state=42)
+            rf.fit(X, freq)
+            proba = rf.predict(X_riv)
             proba = np.clip(proba / max(np.percentile(proba, 98), 1e-6), 0, 1)
-            final = 0.65 * proba + 0.35 * regle
-            info = f"modèle appris sur {int(y.sum())} stations où il est présent et {int(len(y) - y.sum())} où il est absent"
+            # Le modèle pèse d'autant plus qu'il se vérifie sur les secteurs non vus
+            poids = 0.65 * float(np.clip((auc - 0.5) / 0.25, 0.3, 1))
+            final = poids * proba + (1 - poids) * regle
+            info = (f"modèle appris sur {int(y.sum())} stations où il est présent et {int(len(y) - y.sum())} où il est "
+                    f"absent ; AUC {auc:.2f} sur secteurs non vus ; poids du modèle {poids:.2f}")
+            fiabilite[k] = {"auc": round(auc, 3), "stations": int(y.sum()),
+                            "niveau": "bonne" if auc >= 0.8 else "correcte" if auc >= 0.7 else "indicative"}
         else:
             final = regle
             info = f"règles seules ({int(y.sum())} stations où il est présent)"
@@ -259,6 +287,7 @@ def main():
         features.append({"type": "Feature", "properties": p, "geometry": g})
     ecrire_json(DONNEES_SITE / "eaux.json", {"type": "FeatureCollection", "especes": ESP, "features": features}, compact=True)
     ecrire_json(DATA / "potentiel_resume.json", resume)
+    ecrire_json(DATA / "fiabilite.json", fiabilite)
     taille = (DONNEES_SITE / "eaux.json").stat().st_size / 1e6
     print(f"Carte des eaux : {len(features)} objets, {taille:.1f} Mo")
 

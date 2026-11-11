@@ -1,10 +1,10 @@
 {
- "truite": "modèle appris sur 304 stations où il est présent et 294 où il est absent",
- "ombre": "modèle appris sur 33 stations où il est présent et 565 où il est absent",
- "brochet": "modèle appris sur 211 stations où il est présent et 387 où il est absent",
- "sandre": "modèle appris sur 42 stations où il est présent et 556 où il est absent",
- "perche": "modèle appris sur 241 stations où il est présent et 357 où il est absent",
- "carpe": "modèle appris sur 72 stations où il est présent et 526 où il est absent",
- "blancs": "modèle appris sur 395 stations où il est présent et 203 où il est absent",
- "silure": "modèle appris sur 59 stations où il est présent et 539 où il est absent"
+ "truite": "modèle appris sur 304 stations où il est présent et 294 où il est absent ; AUC 0.84 sur secteurs non vus ; poids du modèle 0.65",
+ "ombre": "modèle appris sur 33 stations où il est présent et 565 où il est absent ; AUC 0.84 sur secteurs non vus ; poids du modèle 0.65",
+ "brochet": "modèle appris sur 211 stations où il est présent et 387 où il est absent ; AUC 0.79 sur secteurs non vus ; poids du modèle 0.65",
+ "sandre": "modèle appris sur 42 stations où il est présent et 556 où il est absent ; AUC 0.87 sur secteurs non vus ; poids du modèle 0.65",
+ "perche": "modèle appris sur 241 stations où il est présent et 357 où il est absent ; AUC 0.76 sur secteurs non vus ; poids du modèle 0.65",
+ "carpe": "modèle appris sur 72 stations où il est présent et 526 où il est absent ; AUC 0.74 sur secteurs non vus ; poids du modèle 0.63",
+ "blancs": "modèle appris sur 395 stations où il est présent et 203 où il est absent ; AUC 0.83 sur secteurs non vus ; poids du modèle 0.65",
+ "silure": "modèle appris sur 59 stations où il est présent et 539 où il est absent ; AUC 0.91 sur secteurs non vus ; poids du modèle 0.65"
 }

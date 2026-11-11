@@ -52,6 +52,8 @@
   .heures-axe { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--gris); }
   .heures-txt { font-size: 12.5px; line-height: 1.45; margin-top: 5px; color: var(--encre); }
   .heures-txt .gris { color: var(--gris); }
+  .notes { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
+  .notes button { border: 1px solid var(--ligne); background: #fff; border-radius: 8px; padding: 5px 9px; font-size: 12.5px; cursor: pointer; color: var(--encre); }
   .alerte { color: #b3261e; font-weight: 650; }
   .attention { color: #8a5a00; }
   .bascule { display: grid; grid-template-columns: 1fr 1fr; background: #e3eaed; border-radius: 10px; padding: 3px; margin-bottom: 12px; }
@@ -151,6 +153,7 @@
 
     <div class="barre"></div>
     <div class="barre-txt"><span>Peu favorable</span><span>400</span><span>Exceptionnel (1000)</span></div>
+    <p class="petit" id="aide-zoom">Zoomez pour voir aussi les petits cours d'eau et les petits étangs.</p>
 
     <div class="autour">
       <label class="titre">Autour de moi</label>
@@ -164,6 +167,8 @@
     </div>
 
     <div class="fiche" id="fiche"></div>
+
+    <div id="carnet"></div>
 
     <div class="pied">
       La carte indique des eaux favorables, jamais une certitude. Carte de pêche obligatoire. Les dates affichées suivent le cadre national :
@@ -376,7 +381,7 @@ const coucheStations = L.layerGroup();
 const controle = L.control.layers(fonds, { "Débits et écoulements": coucheStations }, { position: "topright" }).addTo(carte);
 const rendu = L.canvas({ padding: 0.3 });
 
-let info = null, eaux = null, couche = null, espece = "brochet", mode = "jour", jourSel = 0;
+let info = null, eaux = null, espece = "brochet", mode = "jour", jourSel = 0;
 const jourCharges = {};
 try { espece = localStorage.getItem("pc-espece") || espece; mode = localStorage.getItem("pc-mode") || mode; } catch (e) {}
 const enregistrer = () => { try { localStorage.setItem("pc-espece", espece); localStorage.setItem("pc-mode", mode); } catch (e) {} };
@@ -399,16 +404,72 @@ function style(f, s) {
   return { color: s >= 80 ? col : "#7d9aab", weight: 1, fillColor: col, fillOpacity: s >= 80 ? 0.6 : 0.25 };
 }
 
-let scores = [], coucheFiltre = null;
+// Niveau de détail : les grandes eaux d'abord, les petites en zoomant. La carte reste fluide sur téléphone.
+// 0 : toujours (Rhin, canaux, rivières larges, plans d'eau de 5 ha et plus) ; 1 : à partir du zoom 10 ; 2 : zoom 12.
+const ZOOM_NIVEAU = [0, 10, 12];
+function niveauDetail(p) {
+  let n;
+  if (["riviere", "canal", "rhin"].includes(p.t)) n = (p.t !== "riviere" || p.o >= 4 || p.w >= 2) ? 0 : (p.o >= 2 || p.n) ? 1 : 2;
+  else n = p.s >= 5 ? 0 : p.s >= 1 ? 1 : 2;
+  return n > 0 && Math.max(...p.p) >= 600 ? n - 1 : n;       // un très bon coin se voit un cran plus tôt
+}
+let scores = [], coucheFiltre = null, couches = [];
+function ajusterDetail() {
+  const z = carte.getZoom();
+  couches.forEach((c, n) => {
+    const montrer = z >= ZOOM_NIVEAU[n];
+    if (montrer && !carte.hasLayer(c)) c.addTo(carte);
+    else if (!montrer && carte.hasLayer(c)) carte.removeLayer(c);
+  });
+  const aide = document.getElementById("aide-zoom");
+  if (aide) aide.hidden = z >= ZOOM_NIVEAU[2];
+}
 async function dessiner() {
   scores = await scoresActuels();
-  if (!couche || coucheFiltre !== filtre) {
-    if (couche) carte.removeLayer(couche);
-    couche = L.geoJSON(eaux, { renderer: rendu, filter: (f) => visible(f.properties), style: (f) => style(f, 0) }).addTo(carte);
-    couche.on("click", (ev) => ouvrirPopup(ev.layer, ev.latlng));
+  if (!couches.length || coucheFiltre !== filtre) {
+    couches.forEach((c) => carte.removeLayer(c));
+    couches = ZOOM_NIVEAU.map((_, n) => {
+      const c = L.geoJSON(eaux, { renderer: rendu, filter: (f) => visible(f.properties) && niveauDetail(f.properties) === n, style: (f) => style(f, 0) });
+      c.on("click", (ev) => ouvrirPopup(ev.layer, ev.latlng));
+      return c;
+    });
     coucheFiltre = filtre;
   }
-  couche.eachLayer((l) => l.setStyle(style(l.feature, scores[l.feature.properties.i] || 0)));
+  couches.forEach((c) => c.eachLayer((l) => l.setStyle(style(l.feature, scores[l.feature.properties.i] || 0))));
+  ajusterDetail();
+}
+carte.on("zoomend", ajusterDetail);
+
+// ---- Carnet de pêche : gardé uniquement dans ce navigateur, jamais envoyé ----
+let carnet = [];
+try { carnet = JSON.parse(localStorage.getItem("pc-carnet") || "[]"); } catch (e) {}
+const groupeCarnet = L.layerGroup().addTo(carte);
+function noter(ll, p, pris) {
+  carnet.push({ espece, eau: p.n || TYPES[p.t], lat: +ll.lat.toFixed(5), lon: +ll.lng.toFixed(5), date: new Date().toLocaleDateString("sv-SE"),
+    heure: new Date().getHours(), ...(pris ? {} : { bredouille: true }) });
+  try { localStorage.setItem("pc-carnet", JSON.stringify(carnet)); } catch (e) {}
+  afficherCarnet();
+}
+function afficherCarnet() {
+  groupeCarnet.clearLayers();
+  carnet.forEach((n, i) => {
+    const nom = info && info.especes[n.espece] ? info.especes[n.espece].nom : n.espece;
+    L.circleMarker([n.lat, n.lon], { bubblingMouseEvents: false, radius: 6, color: "#fff", weight: 2, fillColor: n.bredouille ? "#8a8f94" : "#2f7d4a", fillOpacity: 1 })
+      .bindPopup(`<b>${echapper(nom)}</b> : ${n.bredouille ? "bredouille" : "prise"} le ${new Date(n.date + "T12:00:00").toLocaleDateString("fr-FR")} vers ${n.heure} h` +
+        `<br>${echapper(n.eau || "")}<div class="notes"><button data-i="${i}">Effacer cette note</button></div>`)
+      .on("popupopen", (ev) => { const b = ev.popup.getElement().querySelector("button[data-i]"); if (b) b.onclick = () => { carnet.splice(i, 1); try { localStorage.setItem("pc-carnet", JSON.stringify(carnet)); } catch (e) {} afficherCarnet(); }; })
+      .addTo(groupeCarnet);
+  });
+  const zone = document.getElementById("carnet");
+  if (!carnet.length) { zone.innerHTML = `<label class="titre">Mon carnet</label><p class="petit">Touchez une eau sur la carte, puis « J'ai pris du poisson ici » ou « Bredouille ici ». Vos notes restent dans ce téléphone.</p>`; return; }
+  const nb = carnet.filter((n) => !n.bredouille).length;
+  zone.innerHTML = `<label class="titre">Mon carnet</label><p class="petit">${nb} prise${nb > 1 ? "s" : ""}, ${carnet.length - nb} bredouille${carnet.length - nb > 1 ? "s" : ""}. Ces notes restent dans ce téléphone.</p>` +
+    `<div class="notes"><button id="copier-carnet">Copier mes notes</button></div><p class="petit" id="aide-carnet">Collez-les dans la conversation avec Claude pour affiner les réglages.</p>`;
+  document.getElementById("copier-carnet").onclick = async () => {
+    const texte = JSON.stringify(carnet);
+    try { await navigator.clipboard.writeText(texte); document.getElementById("aide-carnet").textContent = "Notes copiées : collez-les dans la conversation avec Claude."; }
+    catch (e) { document.getElementById("aide-carnet").textContent = texte; }
+  };
 }
 
 let popupJeton = 0;
@@ -430,7 +491,11 @@ function ouvrirPopup(layer, latlng) {
   const jeton = ++popupJeton;
   if (peutPecher) html += ATTENTE;
   html += `<a href="https://www.google.com/maps/dir/?api=1&destination=${latlng.lat.toFixed(5)},${latlng.lng.toFixed(5)}" target="_blank" rel="noopener">Itinéraire</a>`;
+  html += `<div class="notes"><button data-a="pris">✅ J'ai pris du poisson ici</button><button data-a="rien">❌ Bredouille ici</button></div>`;
   const popup = L.popup({ maxWidth: 320 }).setLatLng(latlng).setContent(html).openOn(carte);
+  const brancher = () => { const el = popup.getElement(); if (el) el.querySelectorAll("button[data-a]").forEach((b) => b.onclick = () => { noter(latlng, p, b.dataset.a === "pris"); carte.closePopup(popup); }); };
+  brancher();
+  popup.on("contentupdate", brancher);
   if (!peutPecher) return;
   Promise.all([chargerMeteoHeures(latlng.lat, latlng.lng), mode === "jour" ? null : chargerJour(espece)]).then(([m, dj]) => {
     if (jeton !== popupJeton || !popup.isOpen()) return;
@@ -531,8 +596,10 @@ async function afficher() {
   document.getElementById("mode-potentiel").setAttribute("aria-pressed", mode === "potentiel");
   const regle = document.getElementById("regle"), ferme = e.reglementation.startsWith("fermée");
   regle.className = "regle" + (ferme ? " ferme" : "");
-  regle.innerHTML = `<b>Pêche ${e.reglementation}</b> (cadre national). Vérifiez l'arrêté de votre département et le règlement de l'AAPPMA.`;
-  afficherAcces(); afficherAvenir(); afficherJours(); afficherEtat();
+  const fi = info.fiabilite && info.fiabilite[espece];
+  regle.innerHTML = `<b>Pêche ${e.reglementation}</b> (cadre national). Vérifiez l'arrêté de votre département et le règlement de l'AAPPMA.` +
+    (fi ? `<br>Fiabilité de la carte en rivière : <b>${fi.niveau}</b> (vérifiée sur des secteurs que le modèle n'avait pas vus, ${fi.stations} stations de pêche scientifique).` : "");
+  afficherAcces(); afficherAvenir(); afficherJours(); afficherEtat(); afficherCarnet();
   const l = info.jours && mode === "jour" ? info.jours[jourSel] : info.lune;
   document.getElementById("lune").textContent = l ? `${l.emoji} ${l.lune || l.phase} (${l.illumination} %) : prise en compte, avec un poids modeste.` : "";
   const f = FICHES[espece];
