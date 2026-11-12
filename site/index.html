@@ -54,6 +54,11 @@
   .heures-txt .gris { color: var(--gris); }
   .notes { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
   .notes button { border: 1px solid var(--ligne); background: #fff; border-radius: 8px; padding: 5px 9px; font-size: 12.5px; cursor: pointer; color: var(--encre); }
+  .conseils { margin-top: 8px; font-size: 12.5px; line-height: 1.45; }
+  .conseils summary { cursor: pointer; font-weight: 650; color: var(--nuit); }
+  .conseils ul { margin: 2px 0 6px; padding-left: 18px; }
+  .conseils .gris { color: var(--gris); margin: 2px 0 4px; }
+  .leaflet-popup-content { max-height: 62vh; overflow-y: auto; }
   .alerte { color: #b3261e; font-weight: 650; }
   .attention { color: #8a5a00; }
   .bascule { display: grid; grid-template-columns: 1fr 1fr; background: #e3eaed; border-radius: 10px; padding: 3px; margin-bottom: 12px; }
@@ -333,7 +338,7 @@ function analyserHeures(m, iso, lat, lng, esp, props) {
     if (dMaj <= 1) fac.push([1 + 0.08 * SENS_LUNE[esp], "période solunaire majeure"]);
     else if (dMin <= 0.5) fac.push([1 + 0.04 * SENS_LUNE[esp], "période solunaire mineure"]);
     const legal = (t >= debutLegal && t <= finLegal) || nuitPermise;
-    return { h, legal, f: fac.reduce((a, [v]) => a * v, 1), fac };
+    return { h, legal, f: fac.reduce((a, [v]) => a * v, 1), fac, nu, w, r };
   });
   // Meilleurs créneaux : heures autorisées proches du maximum, regroupées
   const ok = heures.filter((x) => x.legal);
@@ -440,6 +445,90 @@ async function dessiner() {
 }
 carte.on("zoomend", ajusterDetail);
 
+// ---- Techniques conseillées : selon l'espèce, le type d'eau, la température de l'eau, la saison et le temps ----
+// Repères généraux de pêcheurs, pas des certitudes : ils donnent un point de départ, à adapter sur place.
+function contexte(p, a, k) {
+  const m = info.meteo, plan = p ? !["riviere", "canal", "rhin"].includes(p.t) : false;
+  const te = plan ? m.eau_plans : m.eau_rivieres, j = info.jours && info.jours[k];
+  return { plan, grand: p ? (p.t === "canal" || p.t === "rhin" || p.w >= 3) : false, type: p ? p.t : null,
+    te: te == null ? 12 : te, mois: +info.dates[k].slice(5, 7), teinte: !plan && m.pluie_7j_mm >= 25, basse: !plan && m.pluie_7j_mm < 5,
+    baisse: j ? j.dp24_hpa <= -2 : false, hausse: j ? j.dp24_hpa >= 3 : false,
+    couvert: a && a.meilleure ? a.meilleure.nu >= 70 : null, vent: a && a.meilleure ? a.meilleure.w >= 20 : false,
+    pluie: a && a.meilleure ? a.meilleure.r >= 0.3 : false, cat: p ? p.ca : null };
+}
+function conseils(esp, c) {
+  const T = [], A = [], O = [], N = [];       // techniques, appâts et leurres, où chercher, à savoir
+  const froid = c.te < 8, frais = c.te >= 8 && c.te < 13, doux = c.te >= 13 && c.te < 19, chaud = c.te >= 19;
+  if (esp === "truite") {
+    if (froid) { T.push("Toc lent, appât promené près du fond", "Petite cuillère ramenée très lentement"); A.push("Ver de terre, teigne", "Cuillère tournante n° 0 ou 1"); O.push("Courants lents, bordures creuses, aval des obstacles"); }
+    else if (frais) { T.push("Toc dans les veines de courant", "Lancer léger en remontant la rivière", "Mouche : nymphe au fil"); A.push("Ver, teigne, larves d'insectes (porte-bois)", "Cuillère n° 1 ou 2, poisson nageur de 5 cm"); O.push("Courants moyens, fins de radier, amortis derrière les pierres"); }
+    else if (doux) { T.push("Mouche sèche aux éclosions, coup du soir", "Leurres dans les courants vifs", "Toc léger"); A.push("Sèches et sedges, nymphes légères", "Petits poissons nageurs, cuillère n° 1", "Sauterelle en été"); O.push("Têtes de radier, courants oxygénés, berges ombragées"); }
+    else { T.push("Pêche tôt le matin ou au coup du soir seulement"); A.push("Mouche sèche, petits leurres"); O.push("Eau la plus fraîche : courants vifs, arrivées de ruisseaux, ombre"); N.push("Eau chaude : la truite souffre. Au-dessus de 20 °C, mieux vaut ne pas la pêcher."); }
+    if (c.teinte) { A.push("Eau teintée : gros ver de terre, cuillère dorée ou cuivrée, leurres qui vibrent"); O.push("Bordures calmes, où le poisson se met à l'abri du courant"); }
+    if (c.basse) N.push("Eau basse et claire : fil fin, approche discrète par l'aval, petits appâts.");
+    N.push("En 1re catégorie, l'asticot est interdit comme appât et comme amorce, sauf exception locale.");
+  } else if (esp === "ombre") {
+    T.push("Mouche : nymphe légère au fil, petite sèche sur les gobages", "Toc très léger");
+    A.push("Petites mouches grises ou olive (hameçons 16 à 20)", "Petits vers, larves");
+    O.push("Radiers réguliers à fond de graviers, 50 cm à 1 m d'eau");
+    if (froid || frais) N.push("En automne et en hiver, l'ombre mord surtout en milieu de journée.");
+    N.push("Bouche fragile : fil fin et ferrage doux.");
+  } else if (esp === "brochet") {
+    if (froid) { T.push("Poisson mort manié ou posé", "Vif au flotteur", "Gros leurre souple ramené très lentement près du fond"); A.push("Gardon ou rotengle (vif ou mort)", "Shad de 12 à 16 cm, tête plombée de 10 à 20 g"); O.push("Fosses, bordures profondes, ports et bras morts" + (c.plan ? ", cassures" : "")); N.push("Eau froide : touches rares, surtout en milieu de journée. Insistez sur les bons postes."); }
+    else if (frais) { T.push("Leurres souples en linéaire", "Jerkbait avec de longues pauses", "Spinnerbait le long des bordures", "Vif au flotteur"); A.push("Shad de 10 à 15 cm, jerkbait de 10 à 14 cm, spinnerbait", "Gardon vif"); O.push("Bordures, herbiers qui meurent, cassures, entrées de bras morts"); N.push("C'est la meilleure période : le brochet se nourrit activement."); }
+    else if (doux) { T.push("Leurres au-dessus et le long des herbiers", "Leurre de surface le matin et le soir"); A.push("Spinnerbait, cuillère n° 4 ou 5, leurre souple anti-herbe, grenouille de surface"); O.push("Herbiers, nénuphars, bois noyés, zones ombragées"); }
+    else { T.push("Pêche à l'aube uniquement", "Leurres près des zones profondes ou ombragées"); A.push("Leurres souples, spinnerbait"); O.push("Eau profonde, ombre, arrivées d'eau fraîche"); N.push("Eau chaude : le brochet récupère mal après la prise. Abrégez le combat."); }
+    A.push(c.teinte || c.couvert ? "Temps couvert ou eau teintée : couleurs vives (chartreuse, orange), leurres qui vibrent" : "Eau claire : couleurs naturelles (gardon, perche, blanc)");
+    N.push("Bas de ligne en acier ou en gros fluorocarbone indispensable (dents).");
+  } else if (esp === "sandre") {
+    if (froid) { T.push("Leurre souple gratté très lentement sur le fond", "Drop shot sur place", "Vif posé sur le fond"); O.push("Fosses, pieds de cassure, fonds durs les plus profonds"); }
+    else { T.push("Leurre souple en linéaire au ras du fond", "Tirette ou vif au posé", "Verticale le long des cassures"); O.push("Fonds durs : graviers, enrochements, piles de pont, cassures" + (c.grand ? ", bordures du chenal" : "")); }
+    A.push("Shad ou finesse de 7 à 12 cm, tête plombée de 7 à 14 g", "Petit gardon ou ablette");
+    A.push(c.teinte || c.couvert ? "Eau teintée ou ciel couvert : couleurs vives, et le sandre mord aussi en journée" : "Eau claire et soleil : couleurs naturelles, pêchez surtout à l'aube et au crépuscule");
+    N.push("Touche discrète : gardez le contact avec le leurre et ferrez au moindre arrêt.");
+  } else if (esp === "perche") {
+    if (froid) { T.push("Drop shot lent", "Petit leurre souple gratté sur le fond", "Ver de terre au posé"); O.push("Fosses, pieds de pontons et d'enrochements, ports"); }
+    else if (chaud) { T.push("Leurres de surface sur les chasses, matin et soir", "Petite cuillère en linéaire"); O.push("Bordures, herbiers, hauts-fonds où chassent les bancs"); }
+    else { T.push("Petit leurre souple en linéaire ou en drop shot", "Cuillère tournante", "Ver ou petit vif au flotteur"); O.push("Obstacles : pontons, palplanches, enrochements, arbres noyés, herbiers"); }
+    A.push("Leurres souples de 5 à 7 cm, tête de 3 à 5 g", "Cuillère n° 1 ou 2, micro-jig", "Ver de terre, vairon");
+    N.push("La perche vit en bancs : après une touche, insistez au même endroit.");
+  } else if (esp === "carpe") {
+    if (c.te < 10) { T.push("Un seul appât bien présenté, très peu d'amorce", "Pêche de l'après-midi"); A.push("Maïs doux, petites bouillettes digestes (10 à 14 mm), appât flottant de couleur vive"); O.push("Zones peu profondes exposées au soleil, bordures à l'abri du vent froid"); N.push("Eau froide : la carpe mange peu. Une touche dans la journée est déjà un bon résultat."); }
+    else if (c.te < 16) { T.push("Montage classique au cheveu, amorçage modéré"); A.push("Bouillettes de 15 mm, pellets, maïs"); O.push("Hauts-fonds qui se réchauffent, bordures, roselières"); }
+    else if (c.te < 24) { T.push("Montage au cheveu, amorçage soutenu sur un poste", "Pêche en surface par temps chaud et calme"); A.push("Bouillettes de 18 à 20 mm, graines cuites (maïs, chènevis, noix tigrée), pellets", "Pain ou croquettes en surface"); O.push("Bordures, nénuphars, hauts-fonds, obstacles"); }
+    else { T.push("Pêche à l'aube et en soirée", "Amorçage léger"); A.push("Bouillettes, graines"); O.push("Zones oxygénées : arrivées d'eau, berges battues par le vent"); }
+    if (c.vent) O.push("Par vent doux, pêchez la berge vers laquelle il souffle : la nourriture s'y accumule");
+    if (c.baisse || c.pluie) N.push("Pression en baisse ou pluie douce : la carpe est souvent plus active.");
+    N.push("Pêche de nuit autorisée seulement sur les parcours désignés.");
+  } else if (esp === "blancs") {
+    if (froid) { T.push(c.plan || c.grand ? "Pêche au coup ou au feeder, très fine" : "Pêche au coup dans les calmes", "Très peu d'amorce, sombre et fine"); A.push("Ver de vase, pinkies, petit asticot, hameçon de 18 à 22"); O.push("Fosses et zones calmes les plus profondes, ports, bras morts"); }
+    else if (chaud) { T.push("Pêche au coup ou à l'anglaise, amorçage généreux", "Pêche du chevesne en surface"); A.push("Asticots, maïs, blé, chènevis", "Pain, cerise ou sauterelle pour le chevesne"); O.push("Bordures, herbiers, courants oxygénés en rivière"); }
+    else { T.push(c.plan ? "Pêche au coup ou au feeder" : c.grand ? "Feeder ou bolognaise" : "Pêche au coup, bolognaise dans les courants", "Amorçage régulier en petites boulettes"); A.push("Asticots, vers de terreau, maïs, pain"); O.push(c.plan ? "Bordures, cassures proches du bord" : "Calmes et amortis près du courant, sorties de bras morts"); }
+    if (c.teinte) A.push("Eau teintée : ver de terre, amorce plus odorante");
+    if (c.cat === 1) N.push("En 1re catégorie, l'asticot est interdit comme appât et comme amorce, sauf exception locale.");
+  } else if (esp === "silure") {
+    if (c.te < 10) { T.push("Pêche au posé lente, sur les fosses"); A.push("Gros bouquet de vers de terre"); O.push("Fosses les plus profondes, où il hiverne en groupes"); N.push("Eau froide : le silure bouge très peu. Les chances restent faibles jusqu'au printemps."); }
+    else if (c.te < 18) { T.push("Pêche au posé avec un bouquet de vers", "Gros leurre souple ramené près du fond"); A.push("Bouquet de lombrics, vif", "Shad de 15 à 20 cm sur tête lourde"); O.push("Sorties de fosses, cassures, amortis derrière les obstacles"); }
+    else { T.push("Pêche au vif ou aux gros pellets, le soir", "Gros leurres souples, leurres à forte vibration"); A.push("Vif, bouquet de vers, pellets de 20 mm et plus", "Shad de 15 à 25 cm"); O.push("Entrées et sorties de fosses, piles de pont, bordures encombrées, confluences"); }
+    if (c.teinte) N.push("Eau qui monte et se teinte : le silure chasse en bordure, c'est souvent le meilleur moment.");
+    N.push("Matériel très solide : canne puissante, tresse épaisse, gros hameçons.");
+  }
+  if (["brochet", "sandre", "perche"].includes(esp)) {
+    if (c.mois >= 2 && c.mois <= 4) N.push("De fin janvier à fin avril, en 2e catégorie, la pêche au vif, au poisson mort et aux leurres est interdite (fermeture du brochet).");
+    if (c.hausse) N.push("Pression en forte hausse (ciel dégagé après la pluie) : touches plus rares, ralentissez les animations.");
+    if (c.baisse) N.push("Pression en baisse : les carnassiers sont souvent plus mordeurs avant la pluie.");
+  }
+  return { T, A, O, N };
+}
+function htmlConseils(esp, c, ouvert) {
+  const r = conseils(esp, c);
+  if (!r.T.length) return "";
+  const liste = (titre, x) => x.length ? `<b>${titre}</b><ul>${x.map((t) => `<li>${t}</li>`).join("")}</ul>` : "";
+  const eau = `eau estimée à ${Math.round(c.te)} °C` + (c.teinte ? ", sans doute teintée" : c.basse ? ", basse et claire" : "");
+  return `<details class="conseils"${ouvert ? " open" : ""}><summary>Techniques conseillées</summary><div class="gris">${eau}</div>` +
+    liste("Comment", r.T) + liste("Appâts et leurres", r.A) + liste("Où chercher", r.O) + liste("À savoir", r.N) + `</details>`;
+}
+
 // ---- Carnet de pêche : gardé uniquement dans ce navigateur, jamais envoyé ----
 let carnet = [];
 try { carnet = JSON.parse(localStorage.getItem("pc-carnet") || "[]"); } catch (e) {}
@@ -501,7 +590,7 @@ function ouvrirPopup(layer, latlng) {
     if (jeton !== popupJeton || !popup.isOpen()) return;
     const base = mode === "jour" ? s : ((dj && dj.j[0] && dj.j[0][p.i]) || 0);
     const a = analyserHeures(m, info.dates[k], latlng.lat, latlng.lng, espece, p);
-    popup.setContent(html.replace(ATTENTE, `<div>${htmlHeures(a, base, mode === "jour" ? "" : "aujourd'hui")}</div>`));
+    popup.setContent(html.replace(ATTENTE, `<div>${htmlHeures(a, base, mode === "jour" ? "" : "aujourd'hui")}${htmlConseils(espece, contexte(p, a, k), false)}</div>`));
   });
 }
 
@@ -584,7 +673,10 @@ async function afficherHeures() {
   if (!bloc.innerHTML) bloc.innerHTML = `<div class="heures-txt gris">Calcul des meilleures heures…</div>`;
   const m = await chargerMeteoHeures(lieu.lat, lieu.lng);
   if (jeton !== heuresJeton) return;
-  bloc.innerHTML = htmlHeures(analyserHeures(m, info.dates[jourSel], lieu.lat, lieu.lng, espece, null), valeursZone(pv)[jourSel], ou);
+  const analyse = analyserHeures(m, info.dates[jourSel], lieu.lat, lieu.lng, espece, null);
+  bloc.innerHTML = htmlHeures(analyse, valeursZone(pv)[jourSel], ou) +
+    htmlConseils(espece, contexte({ t: "riviere" }, analyse, jourSel), false).replace("Techniques conseillées", "Techniques conseillées en rivière") +
+    htmlConseils(espece, contexte({ t: "etang" }, analyse, jourSel), false).replace("Techniques conseillées", "Techniques conseillées en étang ou gravière");
 }
 
 async function afficher() {
