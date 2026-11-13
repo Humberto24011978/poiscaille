@@ -219,6 +219,9 @@ let filtre = ORDRE_STATUTS;
 try { const f = localStorage.getItem("pc-acces"); if (f && /^[paxi]+$/.test(f)) filtre = f; } catch (e) {}
 const statutDe = (p) => p.st || "i";
 const visible = (p) => filtre.includes(statutDe(p));
+// Barre des jours : score de la meilleure eau de la zone (même mesure que la liste « Autour de moi »)
+const valeursBarre = (pv) => !pv.meilleur ? valeursZone(pv)
+  : (filtre !== ORDRE_STATUTS && pv.meilleur_filtres && pv.meilleur_filtres[filtre]) ? pv.meilleur_filtres[filtre].map((v) => v ?? 0) : pv.meilleur;
 const valeursZone = (pv) => (filtre !== ORDRE_STATUTS && pv.filtres && pv.filtres[filtre]) ? pv.filtres[filtre].map((v) => v ?? 0) : pv.zone;
 
 function htmlAcces(p) {
@@ -632,14 +635,14 @@ function afficherJours() {
   const bloc = document.getElementById("bloc-jours"), p = info.previsions[espece];
   bloc.hidden = mode !== "jour";
   if (mode !== "jour") return;
-  const zv = valeursZone(p);
+  const zv = valeursBarre(p);
   document.getElementById("jours").innerHTML = info.dates.map((d, k) => {
     const v = zv[k], lib = k === 0 ? "Auj." : k === 1 ? "Dem." : new Date(d + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "short" }).replace(".", "") + " " + +d.slice(8);
     return `<button data-k="${k}" aria-pressed="${k === jourSel}" class="${k >= 4 ? "tendance" : ""}" title="${dateFr(d)} : ${v}/1000"><span>${lib}</span>` +
       `<span class="colonne"><span style="height:${Math.max(4, v / 10)}%;background:${couleurValeur(v)}"></span></span><span>${v}</span></button>`;
   }).join("");
   document.querySelectorAll("#jours button").forEach((b) => b.onclick = () => { jourSel = +b.dataset.k; afficher(); });
-  document.getElementById("jours-legende").textContent = `Score des meilleures eaux ${info.zone.nom} (${info.zone.rayon_km} km), sur 1000. Fiable sur 3 jours ; au-delà (pointillés), c'est une tendance.`;
+  document.getElementById("jours-legende").textContent = `Score de la meilleure eau ${info.zone.nom} (${info.zone.rayon_km} km), sur 1000 : le même chiffre que l'eau n° 1 de la liste « Autour de moi » avec ce centre et ce rayon. Fiable sur 3 jours ; au-delà (pointillés), c'est une tendance.`;
 }
 
 function afficherEtat() {

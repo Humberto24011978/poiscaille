@@ -343,6 +343,7 @@ def main():
     for e in ESP:
         p = pot[e].to_numpy(float)
         jours, prev = [], {"zone": [], "region": [], "statut": [], "filtres": {c: [] for c in filtres},
+                           "meilleur": [], "meilleur_filtres": {c: [] for c in filtres},
                            "f_pression": [], "f_lune": []}
         for k, jour in enumerate(dates):
             texte, legal = texte_reglementation(e, jour)
@@ -368,6 +369,11 @@ def main():
                 sel = sel & bons & dans_zone
                 n_sel = int(sel.sum())
                 prev["filtres"][cle].append(None if n_sel == 0 else int(np.percentile(score[sel], 90 if n_sel >= 10 else 75)))
+            # Score de la meilleure eau de la zone : le chiffre affiché sur la barre des jours, le même que l'eau n° 1 de la liste
+            prev["meilleur"].append(int(score[dans_zone].max()) if dans_zone.any() else 0)
+            for cle, sel in filtres.items():
+                sel = sel & dans_zone
+                prev["meilleur_filtres"][cle].append(int(score[sel].max()) if sel.any() else None)
             z = dans_zone if dans_zone.any() else np.ones(len(eaux), bool)
             prev["f_pression"].append(round(float(np.nanmedian(f_p[z])), 3))
             prev["f_lune"].append(round(f_l, 3))
